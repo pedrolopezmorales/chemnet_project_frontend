@@ -9,6 +9,7 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10 second timeout
 });
 
 // Types for API responses
@@ -146,17 +147,35 @@ export const researcherApi = {
 
 // Error handling wrapper
 export const handleApiError = (error: any) => {
+  console.error('Full error object:', error);
+  
   if (error.response) {
     // Server responded with error status
-    console.error('API Error:', error.response.data);
+    console.error('API Error Response:', error.response.data);
+    console.error('Status:', error.response.status);
+    console.error('Headers:', error.response.headers);
+    
+    // If we get HTML instead of JSON, it means the endpoint is not an API
+    if (error.response.headers['content-type']?.includes('text/html')) {
+      return { 
+        success: false, 
+        message: `The backend endpoint returned HTML instead of JSON. This suggests the Django backend is not configured as a REST API. Status: ${error.response.status}` 
+      };
+    }
+    
     return error.response.data;
   } else if (error.request) {
     // Request was made but no response received
-    console.error('Network Error:', error.request);
-    return { success: false, message: 'Network error. Make sure Django server is running on localhost:8000' };
+    console.error('Network Error - No response received:', error.request);
+    console.error('Error code:', error.code);
+    console.error('Error message:', error.message);
+    return { 
+      success: false, 
+      message: `Network error: ${error.message}. Please check if the API server at ${API_BASE_URL} is accessible.` 
+    };
   } else {
     // Something else happened
     console.error('Error:', error.message);
-    return { success: false, message: 'An unexpected error occurred' };
+    return { success: false, message: 'An unexpected error occurred: ' + error.message };
   }
 };

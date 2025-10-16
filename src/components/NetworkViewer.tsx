@@ -17,7 +17,9 @@ export default function NetworkViewer({ iframeUrl, connections, title }: Network
     return null;
   }
 
-  const fullIframeUrl = `http://localhost:8000${iframeUrl}`;
+  // Use the same base URL as configured in the environment
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  const fullIframeUrl = `${baseUrl}${iframeUrl}`;
 
   return (
     <div className="w-full space-y-6">
