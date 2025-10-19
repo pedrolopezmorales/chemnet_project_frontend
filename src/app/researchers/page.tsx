@@ -153,7 +153,7 @@ export default function ResearchersPage() {
                     value={researcher}
                     onChange={(e) => setResearcher(e.target.value)}
                     placeholder="Enter researcher name (e.g., Yang, Xin)..."
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-orange-600"
                     disabled={isLoading}
                   />
                   {isLoading && (

@@ -12,7 +12,7 @@ export default function Navigation() {
           <div className="flex space-x-6">
             <Link href="/" className="text-gray-600 hover:text-gray-900">Home</Link>
             <Link href="/chemicals" className="text-gray-600 hover:text-gray-900">Chemicals</Link>
-            <Link href="/companies" className="text-gray-600 hover:text-gray-900">Companies</Link>
+            <Link href="/companies" className="text-gray-600 hover:text-gray-900">Funding Sources</Link>
             <Link href="/universities" className="text-gray-600 hover:text-gray-900">Universities</Link>
             <Link href="/researchers" className="text-gray-600 hover:text-gray-900">Researchers</Link>
           </div>

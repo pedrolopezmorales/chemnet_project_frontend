@@ -14,13 +14,13 @@ const ConnectionsDetails: React.FC<ConnectionsDetailsProps> = ({ connections, ti
   const renderConnectionValue = (key: string, value: any) => {
     // Handle special cases like in Django template
     if (key === "Inchikey" || key === "Affiliation(s)" || typeof value === 'string') {
-      return <li className="text-gray-700">{value}</li>;
+      return <li className="text-white-700">{value}</li>;
     }
     
     // Handle arrays
     if (Array.isArray(value)) {
       return value.map((item, index) => (
-        <li key={index} className="text-gray-700">
+        <li key={index} className="text-white-700">
           {typeof item === 'string' ? item : JSON.stringify(item)}
         </li>
       ));
@@ -28,10 +28,10 @@ const ConnectionsDetails: React.FC<ConnectionsDetailsProps> = ({ connections, ti
     
     // Handle objects
     if (typeof value === 'object') {
-      return <li className="text-gray-700">{JSON.stringify(value)}</li>;
+      return <li className="text-white-700">{JSON.stringify(value)}</li>;
     }
     
-    return <li className="text-gray-700">{String(value)}</li>;
+    return <li className="text-white-700">{String(value)}</li>;
   };
 
   return (
@@ -45,8 +45,8 @@ const ConnectionsDetails: React.FC<ConnectionsDetailsProps> = ({ connections, ti
         {Object.entries(connections).map(([key, items]) => (
           <div key={key} className="border-l-4 border-blue-400 pl-4">
             <div className="flex items-center gap-2 mb-2">
-              <ChevronRight size={16} className="text-blue-300" />
-              <h4 className="font-medium text-blue-100">{key}:</h4>
+              <ChevronRight size={16} className="text-white-300" />
+              <h4 className="font-medium text-white-100">{key}:</h4>
             </div>
             <ul className="space-y-1 ml-6">
               {renderConnectionValue(key, items)}

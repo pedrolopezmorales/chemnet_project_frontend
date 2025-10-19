@@ -76,9 +76,9 @@ export default function CompaniesPage() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Company Network Search</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Funding Source Network Search</h1>
           <p className="text-lg text-gray-600">
-            Explore company affiliations and research networks
+            Explore connections to funding sources in research data
           </p>
         </div>
 
@@ -88,7 +88,7 @@ export default function CompaniesPage() {
             {/* Company Name Input */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Company Name
+                Funding Source Name
               </label>
               <div className="flex gap-2">
                 <div className="flex-1 relative">
@@ -97,8 +97,8 @@ export default function CompaniesPage() {
                     type="text"
                     value={company}
                     onChange={(e) => setCompany(e.target.value)}
-                    placeholder="Enter company name (e.g., Dow Chemical Company)..."
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    placeholder="Enter name of a Funding Source (e.g., Dow Chemical Company)..."
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-green-600"
                     disabled={isLoading}
                   />
                   {isLoading && (
@@ -128,7 +128,7 @@ export default function CompaniesPage() {
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-green-600"
                 >
                   {categoryOptions.map(option => (
                     <option key={option} value={option}>{option}</option>
@@ -145,7 +145,7 @@ export default function CompaniesPage() {
                   <select
                     value={chemicalGroup}
                     onChange={(e) => setChemicalGroup(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-green-600"
                   >
                     {chemicalGroupOptions.map(option => (
                       <option key={option} value={option}>{option}</option>
@@ -210,7 +210,7 @@ export default function CompaniesPage() {
             <NetworkViewer
               iframeUrl={searchResults.iframe_url}
               connections={searchResults.connections}
-              title={`Company Network: ${searchResults.company} (${category})`}
+              title={`Funding Source Network: ${searchResults.company} (${category})`}
             />
           </div>
         )}
@@ -218,7 +218,7 @@ export default function CompaniesPage() {
         {/* Examples Section */}
         {examples.length > 0 && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Try these example companies:</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Try these Funding Source examples:</h3>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
               {examples.map((example, index) => (
                 <button
@@ -235,11 +235,11 @@ export default function CompaniesPage() {
 
         {/* Info Section */}
         <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-          <h3 className="font-medium text-green-800 mb-3">How Company Search Works:</h3>
+          <h3 className="font-medium text-green-800 mb-3">How Funding Source Search Works:</h3>
           <ul className="text-green-700 space-y-2">
-            <li>• <strong>Affiliations:</strong> Shows company relationships and partnerships</li>
-            <li>• <strong>Chemicals:</strong> Displays chemicals associated with the company</li>
-            <li>• <strong>Researchers:</strong> Shows researchers affiliated with the company</li>
+            <li>• <strong>Affiliations:</strong> Shows Funding Source relationships and partnerships</li>
+            <li>• <strong>Chemicals:</strong> Displays chemicals associated with the Funding Source</li>
+            <li>• <strong>Researchers:</strong> Shows researchers affiliated with the Funding Source</li>
             <li>• <strong>Universities:</strong> Displays university collaborations</li>
             <li>• Use filters to refine your search results</li>
             <li>• Click on network nodes to explore connections</li>

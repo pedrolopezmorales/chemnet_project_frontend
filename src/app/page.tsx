@@ -26,8 +26,8 @@ export default function Home() {
             href="/companies"
             className="bg-green-500 hover:bg-green-600 text-white rounded-lg p-8 shadow-lg hover:shadow-xl transition-all"
           >
-            <h2 className="text-2xl font-bold mb-2">Company Search</h2>
-            <p className="text-green-100">Explore company affiliations and research networks</p>
+            <h2 className="text-2xl font-bold mb-2">Funding Source Search</h2>
+            <p className="text-green-100">Explore connections in the studies that entities fund</p>
           </Link>
 
           <Link

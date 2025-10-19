@@ -56,7 +56,7 @@ export default function ChemicalsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
-      <div className="max-w-6xl mx-auto px-4">
+      <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Chemical Network Search</h1>
@@ -76,7 +76,7 @@ export default function ChemicalsPage() {
               value={inchikey}
               onChange={(e) => setInchikey(e.target.value)}
               placeholder="Enter InChIKey for more precise search..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-blue-600"
             />
           </div>
 
