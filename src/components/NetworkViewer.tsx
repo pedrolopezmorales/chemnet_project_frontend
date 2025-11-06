@@ -18,7 +18,7 @@ export default function NetworkViewer({ iframeUrl, connections, title }: Network
   }
 
   // Use the same base URL as configured in the environment
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  const baseUrl = 'https://pedrolopezmorales.pythonanywhere.com';
   const fullIframeUrl = `${baseUrl}${iframeUrl}`;
 
   return (
