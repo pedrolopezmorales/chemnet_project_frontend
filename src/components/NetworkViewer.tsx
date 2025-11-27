@@ -18,7 +18,7 @@ export default function NetworkViewer({ iframeUrl, connections, title }: Network
   }
 
   // Use the same base URL as configured in the environment
-  const baseUrl = 'https://pedrolopezmorales.pythonanywhere.com';
+  const baseUrl = 'https://dabrahamsson.pythonanywhere.com';
   const fullIframeUrl = `${baseUrl}${iframeUrl}`;
 
   return (
