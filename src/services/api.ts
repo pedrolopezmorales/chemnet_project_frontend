@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Base URL for Django API - uses environment variable for production
-const API_BASE_URL = `https://pedrolopezmorales.pythonanywhere.com/api`;
+const API_BASE_URL = `https://dabrahamsson.pythonanywhere.com/api`;
 
 // Create axios instance with default config
 const apiClient = axios.create({
