@@ -145,6 +145,63 @@ export const researcherApi = {
   },
 };
 
+// Funding API types and functions
+export interface FundingData {
+  company: string;
+  count: number;
+  classification: 'Government' | 'University' | 'Foundation' | 'Company' | 'Unknown';
+}
+
+export interface FundingTableResponse {
+  success: boolean;
+  periodic_data: FundingData[];
+  message?: string;
+}
+
+export interface CompanyDetailsRequest {
+  company_name: string;
+}
+
+export interface CompanyDetailsResponse {
+  success: boolean;
+  top_chemicals?: [string, number][];
+  top_affiliations?: string[];
+  error?: string;
+}
+
+export const fundingApi = {
+  // Get funding table data
+  getFundingTable: async (): Promise<FundingTableResponse> => {
+    try {
+      // Note: The Django backend uses /funding_table/ endpoint
+      const response = await apiClient.get('/funding_table/');
+      return {
+        success: true,
+        periodic_data: response.data.periodic_data || []
+      };
+    } catch (error) {
+      const handledError = handleApiError(error);
+      return {
+        success: false,
+        periodic_data: [],
+        message: handledError.message
+      };
+    }
+  },
+
+  // Get company details for modal
+  getCompanyDetails: async (company_name: string): Promise<CompanyDetailsResponse> => {
+    try {
+      const response = await apiClient.get('/company-details/', {
+        params: { company_name }
+      });
+      return response.data;
+    } catch (error) {
+      return handleApiError(error);
+    }
+  },
+};
+
 // Error handling wrapper
 export const handleApiError = (error: any) => {
   console.error('Full error object:', error);

@@ -13,7 +13,7 @@ export default function Home() {
           </p>
         </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Link
             href="/chemicals"
             className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg p-8 shadow-lg hover:shadow-xl transition-all"
@@ -44,6 +44,14 @@ export default function Home() {
           >
             <h2 className="text-2xl font-bold mb-2">Researcher Search</h2>
             <p className="text-orange-100">Explore researcher networks and collaborations</p>
+          </Link>
+
+          <Link
+            href="/funding"
+            className="bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg p-8 shadow-lg hover:shadow-xl transition-all"
+          >
+            <h2 className="text-2xl font-bold mb-2">Funding Table</h2>
+            <p className="text-indigo-100">Browse top funding sources and research investments</p>
           </Link>
         </div>
       </div>

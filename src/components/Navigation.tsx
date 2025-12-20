@@ -15,6 +15,7 @@ export default function Navigation() {
             <Link href="/companies" className="text-gray-600 hover:text-gray-900">Funding Sources</Link>
             <Link href="/universities" className="text-gray-600 hover:text-gray-900">Universities</Link>
             <Link href="/researchers" className="text-gray-600 hover:text-gray-900">Researchers</Link>
+            <Link href="/funding" className="text-gray-600 hover:text-gray-900">Funding Table</Link>
           </div>
         </div>
       </div>
