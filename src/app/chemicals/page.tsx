@@ -95,7 +95,7 @@ export default function ChemicalsPage() {
           <>
             {/* Chemical Description */}
             <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
-              <h3 className="font-semibold text-green-800 mb-3 text-lg">Chemical Information</h3>
+              <h3 className="font-semibold text-green-800 mb-3 text-lg">Chemical Information (Source: PubChem)</h3>
               <div className="text-green-700">
                 <p className="font-medium text-gray-800 mb-2">{searchResults.chemical}</p>
                 {searchResults.description ? (
