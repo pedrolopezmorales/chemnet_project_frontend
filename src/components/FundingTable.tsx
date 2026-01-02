@@ -27,7 +27,7 @@ const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
       const response = await fundingApi.getFundingTable();
       console.log('Funding API response:', response);
       
-      if (response.success) {
+      if (response.success && response.periodic_data) {
         console.log('Setting funding data:', response.periodic_data);
         setFundingData(response.periodic_data);
         if (response.message) {
@@ -107,10 +107,10 @@ const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
   return (
     <div className={`${className}`}>
       {error && (
-        <div className={`border rounded-lg p-4 mb-6 ${error.includes('fallback') || error.includes('backend') ? 'bg-orange-50 border-orange-200' : 'bg-blue-50 border-blue-200'}`}>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <div className="flex items-center">
-            <AlertCircle className={`mr-2 ${error.includes('fallback') || error.includes('backend') ? 'text-orange-600' : 'text-blue-600'}`} size={20} />
-            <p className={`${error.includes('fallback') || error.includes('backend') ? 'text-orange-800' : 'text-blue-800'}`}>{error}</p>
+            <AlertCircle className="text-blue-600 mr-2" size={20} />
+            <p className="text-blue-800">{error}</p>
           </div>
         </div>
       )}
