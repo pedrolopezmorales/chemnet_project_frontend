@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ExternalLink, X } from 'lucide-react';
+import { Building2, AlertCircle, X, ExternalLink } from 'lucide-react';
 import { fundingApi, FundingData, CompanyDetailsResponse } from '../services/api';
 
 interface FundingTableProps {
@@ -23,18 +23,49 @@ const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
   const loadFundingData = async () => {
     try {
       setLoading(true);
+      console.log('Loading funding data...');
       const response = await fundingApi.getFundingTable();
+      console.log('Funding API response:', response);
       
       if (response.success) {
+        console.log('Setting funding data:', response.periodic_data);
         setFundingData(response.periodic_data);
-        setError(null);
+        if (response.message) {
+          setError(response.message); // This will show the fallback data message
+        } else {
+          setError(null);
+        }
       } else {
+        console.log('API returned unsuccessful response');
         setError(response.message || 'Failed to load funding data');
+        setFundingData([]); // Don't show data if not successful
       }
     } catch (err) {
+      console.error('Error in loadFundingData:', err);
       setError('Error loading funding data: ' + (err instanceof Error ? err.message : String(err)));
+      setFundingData([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const getClassificationColor = (classification: string) => {
+    switch (classification.toLowerCase()) {
+      case 'government': return 'bg-red-500 text-white hover:bg-red-600';
+      case 'university': return 'bg-green-400 text-black hover:bg-green-500';
+      case 'foundation': return 'bg-teal-500 text-white hover:bg-teal-600';
+      case 'company': return 'bg-yellow-300 text-black hover:bg-yellow-400';
+      default: return 'bg-purple-200 text-black hover:bg-purple-300';
+    }
+  };
+
+  const getClassificationBadgeColor = (classification: string) => {
+    switch (classification.toLowerCase()) {
+      case 'government': return 'bg-red-500 text-white';
+      case 'university': return 'bg-green-400 text-black';
+      case 'foundation': return 'bg-teal-500 text-white';
+      case 'company': return 'bg-yellow-300 text-black';
+      default: return 'bg-purple-200 text-black';
     }
   };
 
@@ -58,26 +89,6 @@ const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
     setCompanyDetails(null);
   };
 
-  const getClassificationColor = (classification: string) => {
-    switch (classification.toLowerCase()) {
-      case 'government': return 'bg-red-500 text-white';
-      case 'university': return 'bg-green-400 text-black';
-      case 'foundation': return 'bg-teal-500 text-white';
-      case 'company': return 'bg-yellow-300 text-black';
-      default: return 'bg-purple-200 text-black';
-    }
-  };
-
-  const getClassificationBadgeColor = (classification: string) => {
-    switch (classification.toLowerCase()) {
-      case 'government': return 'bg-red-500 text-white';
-      case 'university': return 'bg-green-400 text-black';
-      case 'foundation': return 'bg-teal-500 text-white';
-      case 'company': return 'bg-yellow-300 text-black';
-      default: return 'bg-purple-200 text-black';
-    }
-  };
-
   const viewFullNetwork = () => {
     if (selectedCompany) {
       // Navigate to the company search page with the selected company
@@ -88,50 +99,63 @@ const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
   if (loading) {
     return (
       <div className={`flex justify-center items-center h-64 ${className}`}>
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className={`bg-red-50 border border-red-200 rounded-lg p-6 ${className}`}>
-        <h3 className="text-red-800 font-medium mb-2">Error Loading Funding Data</h3>
-        <p className="text-red-600">{error}</p>
-        <button 
-          onClick={loadFundingData}
-          className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-        >
-          Retry
-        </button>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
       </div>
     );
   }
 
   return (
     <div className={`${className}`}>
+      {error && (
+        <div className={`border rounded-lg p-4 mb-6 ${error.includes('fallback') || error.includes('backend') ? 'bg-orange-50 border-orange-200' : 'bg-blue-50 border-blue-200'}`}>
+          <div className="flex items-center">
+            <AlertCircle className={`mr-2 ${error.includes('fallback') || error.includes('backend') ? 'text-orange-600' : 'text-blue-600'}`} size={20} />
+            <p className={`${error.includes('fallback') || error.includes('backend') ? 'text-orange-800' : 'text-blue-800'}`}>{error}</p>
+          </div>
+        </div>
+      )}
+
       <div className="mb-6 text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Research Funding Sources</h1>
-        <p className="text-gray-600">Top 50 funding sources by number of studies funded</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center justify-center">
+          <Building2 className="mr-2" size={28} />
+          Top Funding Sources
+        </h2>
+        <p className="text-gray-600">Click any funding source to see detailed information</p>
       </div>
 
       {/* Funding Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {fundingData.map((item, index) => (
           <div
             key={index}
-            className={`p-4 rounded-lg cursor-pointer transition-transform hover:scale-105 border-2 border-transparent hover:border-gray-300 ${getClassificationColor(item.classification)}`}
+            className={`p-4 rounded-lg cursor-pointer transition-all transform hover:scale-105 shadow-md hover:shadow-lg border-2 border-transparent hover:border-gray-300 ${getClassificationColor(item.classification)}`}
             onClick={() => handleCompanyClick(item)}
           >
-            <div className="font-bold text-sm mb-1 leading-tight">
+            <div className="font-bold text-sm mb-2 leading-tight">
               {item.company.length > 25 ? `${item.company.substring(0, 25)}...` : item.company}
             </div>
-            <div className="text-xs opacity-90">
+            <div className="text-xs opacity-90 mb-1">
               {item.count} studies
+            </div>
+            <div className="text-xs opacity-75 font-medium">
+              {item.classification}
             </div>
           </div>
         ))}
       </div>
+
+      {fundingData.length === 0 && !loading && (
+        <div className="text-center text-gray-500 py-8">
+          <Building2 size={48} className="mx-auto mb-4 opacity-50" />
+          <p>No funding data available</p>
+          <button 
+            onClick={loadFundingData}
+            className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Modal */}
       {selectedCompany && (

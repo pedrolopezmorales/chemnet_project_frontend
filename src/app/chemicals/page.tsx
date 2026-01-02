@@ -92,13 +92,32 @@ export default function ChemicalsPage() {
 
         {/* Results Section */}
         {searchResults && searchResults.success && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <NetworkViewer
-              iframeUrl={searchResults.iframe_url}
-              connections={searchResults.connections}
-              title={`Chemical Network: ${searchResults.chemical}`}
-            />
-          </div>
+          <>
+            {/* Chemical Description */}
+            <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+              <h3 className="font-semibold text-green-800 mb-3 text-lg">Chemical Information</h3>
+              <div className="text-green-700">
+                <p className="font-medium text-gray-800 mb-2">{searchResults.chemical}</p>
+                {searchResults.description ? (
+                  <p className="text-sm leading-relaxed">{searchResults.description}</p>
+                ) : (
+                  <p className="text-sm text-gray-600 italic">No additional description available from PubChem.</p>
+                )}
+                {searchResults.inchikey && searchResults.inchikey !== 'Error' && (
+                  <p className="text-xs text-green-600 mt-2 font-mono">InChIKey: {searchResults.inchikey}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Network Visualization */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <NetworkViewer
+                iframeUrl={searchResults.iframe_url}
+                connections={searchResults.connections}
+                title={`Chemical Network: ${searchResults.chemical}`}
+              />
+            </div>
+          </>
         )}
 
         {/* Info Section */}
