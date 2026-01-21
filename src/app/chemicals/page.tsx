@@ -96,16 +96,42 @@ export default function ChemicalsPage() {
             {/* Chemical Description */}
             <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
               <h3 className="font-semibold text-green-800 mb-3 text-lg">Chemical Information (Source: PubChem)</h3>
-              <div className="text-green-700">
-                <p className="font-medium text-gray-800 mb-2">{searchResults.chemical}</p>
-                {searchResults.description ? (
-                  <p className="text-sm leading-relaxed">{searchResults.description}</p>
-                ) : (
-                  <p className="text-sm text-gray-600 italic">No additional description available from PubChem.</p>
-                )}
-                {searchResults.inchikey && searchResults.inchikey !== 'Error' && (
-                  <p className="text-xs text-green-600 mt-2 font-mono">InChIKey: {searchResults.inchikey}</p>
-                )}
+              
+              <div className="flex flex-col lg:flex-row gap-6">
+                {/* Text Information */}
+                <div className="flex-1 text-green-700">
+                  <p className="font-medium text-gray-800 mb-2">{searchResults.chemical}</p>
+                  {searchResults.description ? (
+                    <p className="text-sm leading-relaxed">{searchResults.description}</p>
+                  ) : (
+                    <p className="text-sm text-gray-600 italic">No additional description available from PubChem.</p>
+                  )}
+                  {searchResults.inchikey && searchResults.inchikey !== 'Error' && (
+                    <p className="text-xs text-green-600 mt-2 font-mono">InChIKey: {searchResults.inchikey}</p>
+                  )}
+                </div>
+
+                {/* Chemical Structure Image */}
+                <div className="lg:w-80 flex flex-col items-center">
+                  <div className="bg-white rounded-lg border border-gray-200 p-4 mb-2">
+                    <img
+                      src={`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(searchResults.chemical || '')}/PNG?record_type=2d`}
+                      alt={`${searchResults.chemical || 'Chemical'} chemical structure`}
+                      className="max-w-full h-auto max-h-64"
+                      onError={(e) => {
+                        // Fallback to InChIKey if chemical name fails
+                        if (searchResults.inchikey && searchResults.inchikey !== 'Error') {
+                          (e.target as HTMLImageElement).src = 
+                            `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/inchikey/${searchResults.inchikey}/PNG?record_type=2d`;
+                        } else {
+                          // Hide image if both fail
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }
+                      }}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 text-center italic">Chemical Structure (Source: PubChem)</p>
+                </div>
               </div>
             </div>
 
