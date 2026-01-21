@@ -9,7 +9,7 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000000, // 10 second timeout
+  timeout: 10000000, //  timeout
 });
 
 // Types for API responses
@@ -93,7 +93,7 @@ export interface FundingData {
 
 export interface FundingTableResponse {
   success: boolean;
-  periodic_data?: FundingData[];
+  funding_data?: FundingData[];
   message?: string;
 }
 
@@ -211,7 +211,7 @@ export const fundingApi = {
         console.log('Returning fallback data with', top50.length, 'items');
         return {
           success: true,
-          periodic_data: top50,
+          funding_data: top50,
           message: 'Using fallback data. Check backend connection for live data.'
         };
     }

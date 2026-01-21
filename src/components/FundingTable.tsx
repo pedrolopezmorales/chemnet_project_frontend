@@ -27,9 +27,9 @@ const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
       const response = await fundingApi.getFundingTable();
       console.log('Funding API response:', response);
       
-      if (response.success && response.periodic_data) {
-        console.log('Setting funding data:', response.periodic_data);
-        setFundingData(response.periodic_data);
+      if (response.success && response.funding_data) {
+        console.log('Setting funding data:', response.funding_data);
+        setFundingData(response.funding_data);
         if (response.message) {
           setError(response.message); // This will show the fallback data message
         } else {
@@ -185,19 +185,19 @@ const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
             <div className="p-6 max-h-96 overflow-y-auto">
               <div className="space-y-4">
                 <div className="border-b border-gray-100 pb-3">
-                  <strong>Classification:</strong>
+                  <strong className="text-black">Classification:</strong>
                   <span className={`ml-2 px-2 py-1 rounded text-xs font-bold ${getClassificationBadgeColor(selectedCompany.classification)}`}>
                     {selectedCompany.classification}
                   </span>
                 </div>
                 
                 <div className="border-b border-gray-100 pb-3">
-                  <strong>Studies Funded:</strong>
-                  <span className="ml-2">{selectedCompany.count}</span>
+                  <strong className="text-black">Studies Funded:</strong>
+                  <span className="ml-2 text-black">{selectedCompany.count}</span>
                 </div>
                 
                 <div className="border-b border-gray-100 pb-3">
-                  <strong>Top Chemicals:</strong>
+                  <strong className="text-black">Top Chemicals:</strong>
                   <div className="mt-2">
                     {loadingDetails ? (
                       <div className="text-gray-500 italic">Loading chemical data...</div>
@@ -219,7 +219,7 @@ const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
                 </div>
                 
                 <div className="pb-3">
-                  <strong>Key Affiliations:</strong>
+                  <strong className="text-black">Key Affiliations:</strong>
                   <div className="mt-2">
                     {loadingDetails ? (
                       <div className="text-gray-500 italic">Loading affiliation data...</div>
