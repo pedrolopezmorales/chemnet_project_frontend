@@ -121,7 +121,7 @@ export default function ChemicalsPage() {
                       onError={(e) => {
                         // Fallback to InChIKey if chemical name fails
                         if (searchResults.inchikey && searchResults.inchikey !== 'Error') {
-                          (e.target as HTMLImageElement).src = 
+                          (e.target as HTMLImageElement).src =   
                             `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/inchikey/${searchResults.inchikey}/PNG?record_type=2d`;
                         } else {
                           // Hide image if both fail

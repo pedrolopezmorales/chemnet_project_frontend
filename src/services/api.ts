@@ -72,6 +72,8 @@ export interface UniversitySearchResponse {
 
 export interface ResearcherSearchRequest {
   researcher: string;
+  selected_index?: number;
+  combine?: boolean;
 }
 
 export interface ResearcherSearchResponse {
@@ -83,6 +85,16 @@ export interface ResearcherSearchResponse {
   message?: string;
   example_researchers?: string[];
   all_researcher_names?: string[];
+  needs_selection?: boolean;
+  matches?: ResearcherMatch[];
+}
+
+export interface ResearcherMatch {
+  Researcher: string;
+  Affiliation: string;
+  Country: string;
+  Department?: string;
+  Companies?: any[];
 }
 
 export interface FundingData {
@@ -173,79 +185,27 @@ export const fundingApi = {
       console.log('Backend response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('Backend API failed, using fallback data:', error);
-      
-      // Fallback to sample data that represents the real structure
-      const sampleData: FundingData[] = [
-          { company: "U.S. Department of Energy", count: 450, classification: "Government" },
-          { company: "National Science Foundation", count: 380, classification: "Government" },
-          { company: "National Institutes of Health", count: 320, classification: "Government" },
-          { company: "Stanford University", count: 285, classification: "University" },
-          { company: "Harvard University", count: 260, classification: "University" },
-          { company: "MIT", count: 245, classification: "University" },
-          { company: "University of California", count: 230, classification: "University" },
-          { company: "Dow Chemical Company", count: 180, classification: "Company" },
-          { company: "BASF Corporation", count: 165, classification: "Company" },
-          { company: "DuPont", count: 150, classification: "Company" },
-          { company: "Bill & Melinda Gates Foundation", count: 140, classification: "Foundation" },
-          { company: "Simons Foundation", count: 125, classification: "Foundation" },
-          { company: "Gordon and Betty Moore Foundation", count: 110, classification: "Foundation" },
-          { company: "University of Oxford", count: 195, classification: "University" },
-          { company: "University of Cambridge", count: 185, classification: "University" },
-          { company: "Yale University", count: 175, classification: "University" },
-          { company: "Princeton University", count: 160, classification: "University" },
-          { company: "Columbia University", count: 155, classification: "University" },
-          { company: "U.S. Department of Defense", count: 310, classification: "Government" },
-          { company: "Environmental Protection Agency", count: 145, classification: "Government" },
-          { company: "NASA", count: 135, classification: "Government" },
-          { company: "National Institute of Standards and Technology", count: 120, classification: "Government" },
-          { company: "European Commission", count: 190, classification: "Government" },
-          { company: "German Research Foundation", count: 165, classification: "Government" },
-          { company: "Japan Society for the Promotion of Science", count: 155, classification: "Government" },
-          { company: "Chinese Academy of Sciences", count: 280, classification: "Government" }
-        ];
-        
-        // Sort by count and take top 50
-        const top50 = sampleData.sort((a, b) => b.count - a.count).slice(0, 50);
-        
-        console.log('Returning fallback data with', top50.length, 'items');
-        return {
-          success: true,
-          funding_data: top50,
-          message: 'Using fallback data. Check backend connection for live data.'
-        };
+      console.error('Backend API failed:', error);
+      return {
+        success: false,
+        message: 'Failed to load funding data'
+      };
     }
   },
 
-  // Get company details for modal using company search API
+  // Get company details for modal
   getCompanyDetails: async (company_name: string): Promise<CompanyDetailsResponse> => {
     try {
       console.log(`Fetching company details for: ${company_name}`);
-      const response = await apiClient.post('/companies/', {
-        company: company_name,
-        category: 'Chemicals'
-      });
+      const response = await apiClient.get(`/funding-table/?company_name=${encodeURIComponent(company_name)}`);
       console.log('Company details response:', response.data);
       
-      if (response.data.success && response.data.connections) {
-        // Extract top chemicals from connections data
-        const connections = response.data.connections;
-        const chemicals: [string, number][] = [];
-        
-        if (connections.nodes) {
-          const chemicalNodes = connections.nodes.filter((node: any) => 
-            node.group === 'chemical' || node.label !== company_name
-          );
-          chemicalNodes.slice(0, 10).forEach((node: any) => {
-            chemicals.push([node.label, node.count || 1]);
-          });
-        }
-        
+      if (response.data.success) {
         return {
           success: true,
-          company_name: company_name,
-          top_chemicals: chemicals,
-          top_affiliations: []
+          company_name: response.data.company_name,
+          top_chemicals: response.data.top_chemicals,
+          top_affiliations: response.data.top_affiliations
         };
       }
       
@@ -255,30 +215,9 @@ export const fundingApi = {
       };
     } catch (error) {
       console.error('Company details API error:', error);
-      
-      // Provide realistic fallback data
-      const mockChemicals: [string, number][] = [
-        ["Carbon dioxide", 45],
-        ["Methane", 32],
-        ["Benzene", 28],
-        ["Ethylene", 24],
-        ["Propylene", 19]
-      ];
-      
-      const mockAffiliations: string[] = [
-        "Department of Chemistry, Stanford University",
-        "Institute for Energy Studies, MIT",
-        "Environmental Science Center, Harvard",
-        "Chemical Engineering Department, UC Berkeley",
-        "Materials Research Lab, Caltech"
-      ];
-      
-      console.log('Using fallback company details for:', company_name);
-      return { 
-        success: true, 
-        company_name,
-        top_chemicals: mockChemicals,
-        top_affiliations: mockAffiliations
+      return {
+        success: false,
+        error: 'Failed to load company details'
       };
     }
   },
@@ -289,36 +228,18 @@ export const handleApiError = (error: any) => {
   console.error('Full error object:', error);
   
   if (error.response) {
-    // Server responded with error status
-    console.error('API Error Response:', error.response.data);
-    console.error('Status:', error.response.status);
-    console.error('Headers:', error.response.headers);
-    
-    // If we get HTML instead of JSON, it means the endpoint is not an API
-    if (typeof error.response.data === 'string' && error.response.data.includes('<!DOCTYPE html>')) {
-      return {
-        success: false,
-        message: 'Backend API endpoint not found. The server returned an HTML page instead of JSON data.',
-        error: 'API_NOT_FOUND'
-      };
-    }
-    
     return {
       success: false,
       message: error.response.data?.message || `Server error: ${error.response.status}`,
       error: 'SERVER_ERROR'
     };
   } else if (error.request) {
-    // Network error
-    console.error('Network Error:', error.request);
     return {
       success: false,
-      message: 'Unable to connect to the backend server. Please check your internet connection.',
+      message: 'Unable to connect to the backend server.',
       error: 'NETWORK_ERROR'
     };
   } else {
-    // Something else happened
-    console.error('Unknown Error:', error.message);
     return {
       success: false,
       message: error.message || 'An unexpected error occurred',
