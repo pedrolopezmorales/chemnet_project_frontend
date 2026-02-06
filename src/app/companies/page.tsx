@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import NetworkViewer from '@/components/NetworkViewer';
 import { companyApi, handleApiError, CompanySearchResponse } from '@/services/api';
 import { Search, Building2, AlertCircle } from 'lucide-react';
 
-export default function CompaniesPage() {
+function CompaniesPageContent() {
   const searchParams = useSearchParams();
   const [searchResults, setSearchResults] = useState<CompanySearchResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -253,5 +253,15 @@ export default function CompaniesPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CompaniesPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
+    </div>}>
+      <CompaniesPageContent />
+    </Suspense>
   );
 }
