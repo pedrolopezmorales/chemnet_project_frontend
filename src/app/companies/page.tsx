@@ -1,18 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import NetworkViewer from '@/components/NetworkViewer';
 import { companyApi, handleApiError, CompanySearchResponse } from '@/services/api';
 import { Search, Building2, AlertCircle } from 'lucide-react';
 
 export default function CompaniesPage() {
+  const searchParams = useSearchParams();
   const [searchResults, setSearchResults] = useState<CompanySearchResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [examples, setExamples] = useState<string[]>([]);
   
-  // Form state
   const [company, setCompany] = useState('');
   const [category, setCategory] = useState('Affiliations');
   const [chemicalGroup, setChemicalGroup] = useState('All');
@@ -21,7 +22,6 @@ export default function CompaniesPage() {
   const categoryOptions = ['Affiliations', 'Chemicals', 'Researchers', 'Universities'];
   const chemicalGroupOptions = ['All', 'Organic'];
 
-  // Load initial data
   useEffect(() => {
     const loadInitialData = async () => {
       try {
@@ -34,8 +34,14 @@ export default function CompaniesPage() {
       }
     };
 
+    // Check for company parameter from URL and auto-fill search bar
+    const companyParam = searchParams.get('company');
+    if (companyParam) {
+      setCompany(decodeURIComponent(companyParam));
+    }
+
     loadInitialData();
-  }, []);
+  }, [searchParams]);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();

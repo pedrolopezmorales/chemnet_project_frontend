@@ -91,7 +91,6 @@ const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
 
   const viewFullNetwork = () => {
     if (selectedCompany) {
-      // Navigate to the company search page with the selected company
       window.location.href = `/companies?company=${encodeURIComponent(selectedCompany.company)}`;
     }
   };
