@@ -209,7 +209,27 @@ function CompaniesPageContent() {
             </div>
           )}
         </div>
-
+        {/* Description Section */}
+        {searchResults?.description && (
+          <div className="bg-gray-50 p-6 rounded-lg border-l-4 border-blue-500 mb-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              About {searchResults.description.title}
+            </h3>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              {searchResults.description.description}
+            </p>
+            {searchResults.description.url && (
+              <a 
+                href={searchResults.description.url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800 font-medium"
+              >
+                📖 Read more on Wikipedia →
+              </a>
+            )}
+          </div>
+        )}
         {/* Results Section */}
         {searchResults && searchResults.success && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
