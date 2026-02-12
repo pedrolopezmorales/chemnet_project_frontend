@@ -43,7 +43,7 @@ export interface CompanySearchResponse {
   company?: string;
   iframe_url?: string;
   connections?: Record<string, any>;
-  description?:  {
+  description?: {
     title: string;
     description: string;
     url: string;
