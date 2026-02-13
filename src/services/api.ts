@@ -121,6 +121,12 @@ export interface CompanyDetailsResponse {
   top_chemicals?: [string, number][];
   top_affiliations?: string[];
   error?: string;
+    description?: {
+    title: string;
+    description: string;
+    url: string;
+    thumbnail?: string;
+  } | null;
 }
 
 // API functions
@@ -211,7 +217,8 @@ export const fundingApi = {
           success: true,
           company_name: response.data.company_name,
           top_chemicals: response.data.top_chemicals,
-          top_affiliations: response.data.top_affiliations
+          top_affiliations: response.data.top_affiliations,
+          description: response.data.description
         };
       }
       

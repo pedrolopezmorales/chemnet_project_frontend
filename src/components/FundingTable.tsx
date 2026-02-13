@@ -235,6 +235,34 @@ const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
                     )}
                   </div>
                 </div>
+                
+                <div className="pb-3">
+                  <strong className="text-black">Description:</strong>
+                  <div className="mt-2">
+                    {loadingDetails ? (
+                      <div className="text-gray-500 italic">Loading description...</div>
+                    ) : companyDetails?.success && companyDetails.description?.description ? (
+                      <div className="space-y-2">
+                        <p className="text-gray-700 leading-relaxed text-sm">
+                          {companyDetails.description.description}
+                        </p>
+                        {companyDetails.description.url && (
+                          <a 
+                            href={companyDetails.description.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 text-sm font-medium inline-flex items-center gap-1"
+                          >
+                            📖 Read more on Wikipedia 
+                            <ExternalLink size={12} />
+                          </a>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-gray-500 italic">No description available</div>
+                    )}
+                  </div>
+                </div>
               </div>
               
               {/* Actions */}
