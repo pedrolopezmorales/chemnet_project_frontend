@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Base URL for Django API - uses environment variable for production
-const API_BASE_URL = `https://dabrahamsson.pythonanywhere.com/api`;
+// Base URL for Django API (local by default, override with NEXT_PUBLIC_API_BASE_URL)
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api';
 
 // Create axios instance with default config
 const apiClient = axios.create({
@@ -119,9 +119,8 @@ export interface CompanyDetailsResponse {
   success: boolean;
   company_name?: string;
   top_chemicals?: [string, number][];
-  top_affiliations?: string[];
   error?: string;
-    description?: {
+  description?: {
     title: string;
     description: string;
     url: string;
@@ -217,7 +216,6 @@ export const fundingApi = {
           success: true,
           company_name: response.data.company_name,
           top_chemicals: response.data.top_chemicals,
-          top_affiliations: response.data.top_affiliations,
           description: response.data.description
         };
       }

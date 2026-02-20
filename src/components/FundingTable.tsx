@@ -218,25 +218,6 @@ const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
                 </div>
                 
                 <div className="pb-3">
-                  <strong className="text-black">Key Affiliations:</strong>
-                  <div className="mt-2">
-                    {loadingDetails ? (
-                      <div className="text-gray-500 italic">Loading affiliation data...</div>
-                    ) : companyDetails?.success && companyDetails.top_affiliations ? (
-                      <div className="space-y-1">
-                        {companyDetails.top_affiliations.map((affiliation, idx) => (
-                          <div key={idx} className="py-1 text-gray-700">
-                            {affiliation}
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-gray-500 italic">No affiliation data available</div>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="pb-3">
                   <strong className="text-black">Description:</strong>
                   <div className="mt-2">
                     {loadingDetails ? (
