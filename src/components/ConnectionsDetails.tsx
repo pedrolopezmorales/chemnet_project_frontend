@@ -1,5 +1,5 @@
 import React from 'react';
-import { Network, List, ChevronRight } from 'lucide-react';
+import { Network } from 'lucide-react';
 
 interface ConnectionsDetailsProps {
   connections: Record<string, any>;
@@ -43,15 +43,17 @@ const ConnectionsDetails: React.FC<ConnectionsDetailsProps> = ({ connections, ti
       
       <div className="space-y-4">
         {Object.entries(connections).map(([key, items]) => (
-          <div key={key} className="border-l-4 border-blue-400 pl-4">
-            <div className="flex items-center gap-2 mb-2">
-              <ChevronRight size={16} className="text-white-300" />
-              <h4 className="font-medium text-white-100">{key}:</h4>
-            </div>
-            <ul className="space-y-1 ml-6">
+          <details
+            key={key}
+            className="bg-white rounded-md px-4 py-2"
+          >
+            <summary className="cursor-pointer font-semibold text-blue-900 select-none">
+              {key}
+            </summary>
+            <ul className="space-y-1 ml-5 mt-2 text-gray-800">
               {renderConnectionValue(key, items)}
             </ul>
-          </div>
+          </details>
         ))}
       </div>
     </div>
