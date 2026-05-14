@@ -142,7 +142,7 @@ const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
         </span>
         <span className="flex items-center">
           <span className="inline-block w-4 h-4 rounded mr-2 bg-purple-200"></span>
-          <span className="text-sm text-gray-700">Other</span>
+          <span className="text-sm text-gray-700">Unknown</span>
         </span>
       </div>
 
@@ -154,8 +154,16 @@ const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
             className={`p-4 rounded-lg cursor-pointer transition-all transform hover:scale-105 shadow-md hover:shadow-lg border-2 border-transparent hover:border-gray-300 ${getClassificationColor(item.classification)}`}
             onClick={() => handleCompanyClick(item)}
           >
-            <div className="font-bold text-sm mb-2 leading-tight">
-              {item.company.length > 25 ? `${item.company.substring(0, 25)}...` : item.company}
+            <div
+              className="font-bold text-sm mb-2 leading-tight break-words overflow-hidden"
+              style={{
+                display: '-webkit-box',
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: 'vertical',
+              }}
+              title={item.company}
+            >
+              {item.company}
             </div>
             <div className="text-xs opacity-90 mb-1">
               {item.count} studies
