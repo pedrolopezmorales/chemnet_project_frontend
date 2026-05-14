@@ -122,6 +122,30 @@ const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
         <p className="text-gray-600">Click any funding source to see detailed information</p>
       </div>
 
+      {/* Color Code Legend */}
+      <div className="mb-4 flex flex-wrap items-center justify-center gap-3">
+        <span className="flex items-center">
+          <span className="inline-block w-4 h-4 rounded mr-2 bg-red-500"></span>
+          <span className="text-sm text-gray-700">Government</span>
+        </span>
+        <span className="flex items-center">
+          <span className="inline-block w-4 h-4 rounded mr-2 bg-green-400"></span>
+          <span className="text-sm text-gray-700">University</span>
+        </span>
+        <span className="flex items-center">
+          <span className="inline-block w-4 h-4 rounded mr-2 bg-yellow-300"></span>
+          <span className="text-sm text-gray-700">Company</span>
+        </span>
+        <span className="flex items-center">
+          <span className="inline-block w-4 h-4 rounded mr-2 bg-teal-500"></span>
+          <span className="text-sm text-gray-700">Foundation</span>
+        </span>
+        <span className="flex items-center">
+          <span className="inline-block w-4 h-4 rounded mr-2 bg-purple-200"></span>
+          <span className="text-sm text-gray-700">Other</span>
+        </span>
+      </div>
+
       {/* Funding Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {fundingData.map((item, index) => (
