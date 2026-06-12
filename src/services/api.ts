@@ -13,6 +13,9 @@ const apiClient = axios.create({
 });
 
 // Types for API responses
+export type ConnectionValue = string | string[] | number | null | undefined;
+export type ConnectionsMap = Record<string, ConnectionValue>;
+
 export interface ChemicalSearchRequest {
   chemical?: string;
   inchikey?: string;
@@ -23,12 +26,13 @@ export interface ChemicalSearchResponse {
   chemical?: string;
   inchikey?: string;
   iframe_url?: string;
-  connections?: Record<string, any>;
+  connections?: ConnectionsMap;
   suggestions?: string[];
   message?: string;
   example_chemicals?: Array<{name: string; inchikey: string}>;
   all_chemical_names?: string[];
   description?: string;
+  image_url?: string;
 }
 
 export interface CompanySearchRequest {
@@ -42,7 +46,7 @@ export interface CompanySearchResponse {
   success: boolean;
   company?: string;
   iframe_url?: string;
-  connections?: Record<string, any>;
+  connections?: ConnectionsMap;
   description?: {
     title: string;
     description: string;
@@ -67,7 +71,7 @@ export interface UniversitySearchResponse {
   success: boolean;
   university?: string;
   iframe_url?: string;
-  connections?: Record<string, any>;
+  connections?: ConnectionsMap;
   suggestions?: string[];
   message?: string;
   example_universities?: string[];
@@ -86,7 +90,7 @@ export interface ResearcherSearchResponse {
   success: boolean;
   researcher?: string;
   iframe_url?: string;
-  connections?: Record<string, any>;
+  connections?: ConnectionsMap;
   suggestions?: string[];
   message?: string;
   example_researchers?: string[];
@@ -100,7 +104,7 @@ export interface ResearcherMatch {
   Affiliation: string;
   Country: string;
   Department?: string;
-  Companies?: any[];
+  Companies?: string[];
 }
 
 export interface FundingData {
@@ -129,6 +133,16 @@ export interface CompanyDetailsResponse {
 }
 
 // API functions
+const postWithMode = async <TRequest, TResponse>(
+  path: string,
+  data: TRequest,
+  mode?: 'connections' | 'graph'
+): Promise<TResponse> => {
+  const suffix = mode ? `?mode=${mode}` : '';
+  const response = await apiClient.post(`${path}${suffix}`, data);
+  return response.data;
+};
+
 export const chemicalApi = {
   // Get example chemicals and all chemical names
   getChemicalData: async (): Promise<ChemicalSearchResponse> => {
@@ -138,8 +152,15 @@ export const chemicalApi = {
 
   // Search for a chemical
   searchChemical: async (data: ChemicalSearchRequest): Promise<ChemicalSearchResponse> => {
-    const response = await apiClient.post('/chemicals/', data);
-    return response.data;
+    return postWithMode<ChemicalSearchRequest, ChemicalSearchResponse>('/chemicals/', data);
+  },
+
+  searchChemicalConnections: async (data: ChemicalSearchRequest): Promise<ChemicalSearchResponse> => {
+    return postWithMode<ChemicalSearchRequest, ChemicalSearchResponse>('/chemicals/', data, 'connections');
+  },
+
+  searchChemicalGraph: async (data: ChemicalSearchRequest): Promise<ChemicalSearchResponse> => {
+    return postWithMode<ChemicalSearchRequest, ChemicalSearchResponse>('/chemicals/', data, 'graph');
   },
 };
 
@@ -152,8 +173,15 @@ export const companyApi = {
 
   // Search for a company
   searchCompany: async (data: CompanySearchRequest): Promise<CompanySearchResponse> => {
-    const response = await apiClient.post('/companies/', data);
-    return response.data;
+    return postWithMode<CompanySearchRequest, CompanySearchResponse>('/companies/', data);
+  },
+
+  searchCompanyConnections: async (data: CompanySearchRequest): Promise<CompanySearchResponse> => {
+    return postWithMode<CompanySearchRequest, CompanySearchResponse>('/companies/', data, 'connections');
+  },
+
+  searchCompanyGraph: async (data: CompanySearchRequest): Promise<CompanySearchResponse> => {
+    return postWithMode<CompanySearchRequest, CompanySearchResponse>('/companies/', data, 'graph');
   },
 };
 
@@ -166,8 +194,15 @@ export const universityApi = {
 
   // Search for a university
   searchUniversity: async (data: UniversitySearchRequest): Promise<UniversitySearchResponse> => {
-    const response = await apiClient.post('/universities/', data);
-    return response.data;
+    return postWithMode<UniversitySearchRequest, UniversitySearchResponse>('/universities/', data);
+  },
+
+  searchUniversityConnections: async (data: UniversitySearchRequest): Promise<UniversitySearchResponse> => {
+    return postWithMode<UniversitySearchRequest, UniversitySearchResponse>('/universities/', data, 'connections');
+  },
+
+  searchUniversityGraph: async (data: UniversitySearchRequest): Promise<UniversitySearchResponse> => {
+    return postWithMode<UniversitySearchRequest, UniversitySearchResponse>('/universities/', data, 'graph');
   },
 };
 
@@ -235,26 +270,36 @@ export const fundingApi = {
 };
 
 // Error handling wrapper
-export const handleApiError = (error: any) => {
+export const handleApiError = (error: unknown) => {
   console.error('Full error object:', error);
-  
-  if (error.response) {
-    return {
-      success: false,
-      message: error.response.data?.message || `Server error: ${error.response.status}`,
-      error: 'SERVER_ERROR'
-    };
-  } else if (error.request) {
-    return {
-      success: false,
-      message: 'Unable to connect to the backend server.',
-      error: 'NETWORK_ERROR'
-    };
-  } else {
+
+  if (axios.isAxiosError(error)) {
+    if (error.response) {
+      return {
+        success: false,
+        message: (error.response.data as { message?: string } | undefined)?.message || `Server error: ${error.response.status}`,
+        error: 'SERVER_ERROR'
+      };
+    }
+
+    if (error.request) {
+      return {
+        success: false,
+        message: 'Unable to connect to the backend server.',
+        error: 'NETWORK_ERROR'
+      };
+    }
+
     return {
       success: false,
       message: error.message || 'An unexpected error occurred',
       error: 'UNKNOWN_ERROR'
     };
   }
+
+  return {
+    success: false,
+    message: error instanceof Error ? error.message : 'An unexpected error occurred',
+    error: 'UNKNOWN_ERROR'
+  };
 };

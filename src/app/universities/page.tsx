@@ -1,16 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Navigation from '@/components/Navigation';
 import NetworkViewer from '@/components/NetworkViewer';
-import { universityApi, handleApiError, UniversitySearchResponse } from '@/services/api';
+import { universityApi, handleApiError, UniversitySearchRequest, UniversitySearchResponse } from '@/services/api';
 import { Search, GraduationCap, AlertCircle } from 'lucide-react';
 
 export default function UniversitiesPage() {
   const [searchResults, setSearchResults] = useState<UniversitySearchResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGraphLoading, setIsGraphLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [examples, setExamples] = useState<string[]>([]);
+  const activeSearchRef = useRef(0);
   
   // Form state
   const [university, setUniversity] = useState('');
@@ -40,27 +42,47 @@ export default function UniversitiesPage() {
     e.preventDefault();
     if (!university.trim()) return;
 
+    const searchId = Date.now();
+    activeSearchRef.current = searchId;
+
     setIsLoading(true);
+    setIsGraphLoading(false);
     setError('');
     setSearchResults(null);
 
+    const payload: UniversitySearchRequest = {
+      university: university.trim(),
+      category: category as UniversitySearchRequest['category'],
+      chemical_group: chemicalGroup as UniversitySearchRequest['chemical_group'],
+    };
+
     try {
-      const result = await universityApi.searchUniversity({
-        university: university.trim(),
-        category: category as any,
-        chemical_group: chemicalGroup as any
-      });
-      
-      setSearchResults(result);
-      
-      if (!result.success) {
-        setError(result.message || 'University not found');
+      const connectionsResult = await universityApi.searchUniversityConnections(payload);
+      if (activeSearchRef.current !== searchId) return;
+
+      setSearchResults(connectionsResult);
+
+      if (!connectionsResult.success) {
+        setError(connectionsResult.message || 'University not found');
+        return;
       }
+
+      setIsLoading(false);
+      setIsGraphLoading(true);
+
+      const graphResult = await universityApi.searchUniversityGraph(payload);
+      if (activeSearchRef.current !== searchId) return;
+
+      setSearchResults((previous) => ({ ...(previous || connectionsResult), ...graphResult }));
     } catch (err) {
+      if (activeSearchRef.current !== searchId) return;
       const errorResult = handleApiError(err);
       setError(errorResult.message || 'Failed to search university');
     } finally {
-      setIsLoading(false);
+      if (activeSearchRef.current === searchId) {
+        setIsLoading(false);
+        setIsGraphLoading(false);
+      }
     }
   };
 
@@ -187,6 +209,7 @@ export default function UniversitiesPage() {
             <NetworkViewer
               iframeUrl={searchResults.iframe_url}
               connections={searchResults.connections}
+              isGraphLoading={isGraphLoading}
               title={`University Network: ${searchResults.university} (${category})`}
             />
           </div>

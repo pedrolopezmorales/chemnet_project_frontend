@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Navigation from '@/components/Navigation';
 import SearchForm from '@/components/SearchForm';
 import NetworkViewer from '@/components/NetworkViewer';
@@ -9,9 +9,11 @@ import { chemicalApi, handleApiError, ChemicalSearchResponse } from '@/services/
 export default function ChemicalsPage() {
   const [searchResults, setSearchResults] = useState<ChemicalSearchResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGraphLoading, setIsGraphLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [examples, setExamples] = useState<string[]>([]);
   const [inchikey, setInchikey] = useState('');
+  const activeSearchRef = useRef(0);
 
   // Load initial data (examples and chemical names)
   useEffect(() => {
@@ -30,26 +32,46 @@ export default function ChemicalsPage() {
   }, []);
 
   const handleSearch = async (chemical: string) => {
+    const searchId = Date.now();
+    activeSearchRef.current = searchId;
+
     setIsLoading(true);
+    setIsGraphLoading(false);
     setError('');
     setSearchResults(null);
 
+    const payload = {
+      chemical,
+      inchikey: inchikey || undefined,
+    };
+
     try {
-      const result = await chemicalApi.searchChemical({
-        chemical,
-        inchikey: inchikey || undefined
-      });
-      
-      setSearchResults(result);
-      
-      if (!result.success) {
-        setError(result.message || 'Chemical not found');
+      const connectionsResult = await chemicalApi.searchChemicalConnections(payload);
+      if (activeSearchRef.current !== searchId) return;
+
+      setSearchResults(connectionsResult);
+
+      if (!connectionsResult.success) {
+        setError(connectionsResult.message || 'Chemical not found');
+        return;
       }
+
+      setIsLoading(false);
+      setIsGraphLoading(true);
+
+      const graphResult = await chemicalApi.searchChemicalGraph(payload);
+      if (activeSearchRef.current !== searchId) return;
+
+      setSearchResults((previous) => ({ ...(previous || connectionsResult), ...graphResult }));
     } catch (err) {
+      if (activeSearchRef.current !== searchId) return;
       const errorResult = handleApiError(err);
       setError(errorResult.message || 'Failed to search chemical');
     } finally {
-      setIsLoading(false);
+      if (activeSearchRef.current === searchId) {
+        setIsLoading(false);
+        setIsGraphLoading(false);
+      }
     }
   };
 
@@ -140,6 +162,7 @@ export default function ChemicalsPage() {
               <NetworkViewer
                 iframeUrl={searchResults.iframe_url}
                 connections={searchResults.connections}
+                isGraphLoading={isGraphLoading}
                 title={`Chemical Network: ${searchResults.chemical}`}
               />
             </div>
@@ -153,7 +176,7 @@ export default function ChemicalsPage() {
             <li>• Enter a chemical name to explore its network connections</li>
             <li>• Add an InChIKey for more precise identification</li>
             <li>• View interactive network visualizations showing chemical relationships</li>
-            <li>• Click suggestions if your search term isn't found</li>
+            <li>• Click suggestions if your search term is not found</li>
           </ul>
         </div>
       </div>

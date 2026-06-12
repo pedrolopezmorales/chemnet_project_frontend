@@ -3,23 +3,24 @@
 import { useState } from 'react';
 import { ExternalLink } from 'lucide-react';
 import ConnectionsDetails from './ConnectionsDetails';
+import type { ConnectionsMap } from '@/services/api';
 
 interface NetworkViewerProps {
   iframeUrl?: string;
-  connections?: Record<string, any>;
+  connections?: ConnectionsMap;
   title?: string;
+  isGraphLoading?: boolean;
 }
 
-export default function NetworkViewer({ iframeUrl, connections, title }: NetworkViewerProps) {
+export default function NetworkViewer({ iframeUrl, connections, title, isGraphLoading = false }: NetworkViewerProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  if (!iframeUrl) {
+  if (!iframeUrl && !connections && !isGraphLoading) {
     return null;
   }
 
-  // Use the same base URL as configured in the environment
   const baseUrl = 'https://dabrahamsson.pythonanywhere.com';
-  const fullIframeUrl = `${baseUrl}${iframeUrl}`;
+  const fullIframeUrl = iframeUrl ? `${baseUrl}${iframeUrl}` : '';
 
   return (
     <div className="w-full space-y-6">
@@ -31,25 +32,27 @@ export default function NetworkViewer({ iframeUrl, connections, title }: Network
       <div className="border border-gray-300 rounded-lg overflow-hidden bg-white shadow-sm">
         <div className="flex justify-between items-center p-3 bg-gray-50 border-b border-gray-300">
           <h3 className="font-medium text-gray-700">Network Visualization</h3>
-          <div className="flex gap-2">
-            <button
-              onClick={() => window.open(fullIframeUrl, '_blank')}
-              className="flex items-center gap-1 px-3 py-1 text-sm text-blue-600 hover:text-blue-800 transition-colors"
-            >
-              <ExternalLink size={16} />
-              Open in new tab
-            </button>
-            <button
-              onClick={() => setIsFullscreen(!isFullscreen)}
-              className="flex items-center gap-1 px-3 py-1 text-sm text-gray-600 hover:text-gray-800 transition-colors"
-            >
-              {isFullscreen ? '📱 Normal' : '🖥️ Fullscreen'}
-            </button>
-          </div>
+          {iframeUrl && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => window.open(fullIframeUrl, '_blank')}
+                className="flex items-center gap-1 px-3 py-1 text-sm text-blue-600 hover:text-blue-800 transition-colors"
+              >
+                <ExternalLink size={16} />
+                Open in new tab
+              </button>
+              <button
+                onClick={() => setIsFullscreen(!isFullscreen)}
+                className="flex items-center gap-1 px-3 py-1 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                {isFullscreen ? '📱 Normal' : '🖥️ Fullscreen'}
+              </button>
+            </div>
+          )}
         </div>
         
         <div className={`${isFullscreen ? 'fixed inset-0 z-50 bg-white' : 'relative'}`}>
-          {isFullscreen && (
+          {isFullscreen && iframeUrl && (
             <div className="flex justify-between items-center p-4 border-b border-gray-300 bg-gray-50">
               <h3 className="font-medium text-gray-700">Network Visualization - Fullscreen</h3>
               <button
@@ -61,12 +64,25 @@ export default function NetworkViewer({ iframeUrl, connections, title }: Network
             </div>
           )}
           
-          <iframe
-            src={fullIframeUrl}
-            className={`w-full border-0 ${isFullscreen ? 'h-[calc(100vh-80px)]' : 'h-96'}`}
-            title="Network Visualization"
-            allow="fullscreen"
-          />
+          {iframeUrl ? (
+            <iframe
+              src={fullIframeUrl}
+              className={`w-full border-0 ${isFullscreen ? 'h-[calc(100vh-80px)]' : 'h-96'}`}
+              title="Network Visualization"
+              allow="fullscreen"
+            />
+          ) : (
+            <div className="flex h-96 items-center justify-center bg-gray-50 text-gray-600">
+              {isGraphLoading ? (
+                <div className="flex items-center gap-3">
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+                  <span>Loading graph...</span>
+                </div>
+              ) : (
+                <span>Graph not available.</span>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

@@ -1,18 +1,20 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import NetworkViewer from '@/components/NetworkViewer';
-import { companyApi, handleApiError, CompanySearchResponse } from '@/services/api';
+import { companyApi, handleApiError, CompanySearchResponse, CompanySearchRequest } from '@/services/api';
 import { Search, Building2, AlertCircle } from 'lucide-react';
 
 function CompaniesPageContent() {
   const searchParams = useSearchParams();
   const [searchResults, setSearchResults] = useState<CompanySearchResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGraphLoading, setIsGraphLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [examples, setExamples] = useState<string[]>([]);
+  const activeSearchRef = useRef(0);
   
   const [company, setCompany] = useState('');
   const [category, setCategory] = useState('Affiliations');
@@ -47,28 +49,48 @@ function CompaniesPageContent() {
     e.preventDefault();
     if (!company.trim()) return;
 
+    const searchId = Date.now();
+    activeSearchRef.current = searchId;
+
     setIsLoading(true);
+    setIsGraphLoading(false);
     setError('');
     setSearchResults(null);
 
+    const payload: CompanySearchRequest = {
+      company: company.trim(),
+      category: category as CompanySearchRequest['category'],
+      chemical_group: chemicalGroup as CompanySearchRequest['chemical_group'],
+      sep_country: sepCountry,
+    };
+
     try {
-      const result = await companyApi.searchCompany({
-        company: company.trim(),
-        category: category as any,
-        chemical_group: chemicalGroup as any,
-        sep_country: sepCountry
-      });
-      
-      setSearchResults(result);
-      
-      if (!result.success) {
-        setError(result.message || 'Company not found');
+      const connectionsResult = await companyApi.searchCompanyConnections(payload);
+      if (activeSearchRef.current !== searchId) return;
+
+      setSearchResults(connectionsResult);
+
+      if (!connectionsResult.success) {
+        setError(connectionsResult.message || 'Company not found');
+        return;
       }
+
+      setIsLoading(false);
+      setIsGraphLoading(true);
+
+      const graphResult = await companyApi.searchCompanyGraph(payload);
+      if (activeSearchRef.current !== searchId) return;
+
+      setSearchResults((previous) => ({ ...(previous || connectionsResult), ...graphResult }));
     } catch (err) {
+      if (activeSearchRef.current !== searchId) return;
       const errorResult = handleApiError(err);
       setError(errorResult.message || 'Failed to search company');
     } finally {
-      setIsLoading(false);
+      if (activeSearchRef.current === searchId) {
+        setIsLoading(false);
+        setIsGraphLoading(false);
+      }
     }
   };
 
@@ -236,6 +258,7 @@ function CompaniesPageContent() {
             <NetworkViewer
               iframeUrl={searchResults.iframe_url}
               connections={searchResults.connections}
+              isGraphLoading={isGraphLoading}
               title={`Funding Source Network: ${searchResults.company} (${category})`}
             />
           </div>
