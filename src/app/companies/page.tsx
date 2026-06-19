@@ -6,6 +6,7 @@ import Navigation from '@/components/Navigation';
 import NetworkViewer from '@/components/NetworkViewer';
 import { companyApi, handleApiError, CompanySearchResponse, CompanySearchRequest } from '@/services/api';
 import { Search, Building2, AlertCircle } from 'lucide-react';
+import SingletonFilterModal from '@/components/SingletonFilterModal';
 
 function CompaniesPageContent() {
   const searchParams = useSearchParams();
@@ -15,6 +16,17 @@ function CompaniesPageContent() {
   const [error, setError] = useState<string>('');
   const [examples, setExamples] = useState<string[]>([]);
   const activeSearchRef = useRef(0);
+  const singletonResolverRef = useRef<((v: boolean) => void) | null>(null);
+  const [singletonPromptVisible, setSingletonPromptVisible] = useState(false);
+  const [singletonInfo, setSingletonInfo] = useState({ count: 0, singletonCount: 0 });
+
+  const askSingletonFilter = (count: number, sc: number): Promise<boolean> => {
+    setSingletonInfo({ count, singletonCount: sc });
+    setSingletonPromptVisible(true);
+    return new Promise<boolean>((resolve) => { singletonResolverRef.current = resolve; });
+  };
+  const handleSingletonConfirm = () => { setSingletonPromptVisible(false); singletonResolverRef.current?.(true); };
+  const handleSingletonCancel  = () => { setSingletonPromptVisible(false); singletonResolverRef.current?.(false); };
   
   const [company, setCompany] = useState('');
   const [category, setCategory] = useState('Affiliations');
@@ -23,6 +35,25 @@ function CompaniesPageContent() {
 
   const categoryOptions = ['Affiliations', 'Chemicals', 'Researchers', 'Universities'];
   const chemicalGroupOptions = ['All', 'Organic'];
+
+  const extractCount = (item: string): number | null => {
+    const match = item.match(/\((\d+)\)\s*$/);
+    return match ? parseInt(match[1], 10) : null;
+  };
+
+  const getGraphCandidates = (connections: unknown): string[] => {
+    if (!connections || typeof connections !== 'object') {
+      return [];
+    }
+    const connectionMap = connections as Record<string, unknown>;
+
+    if (category === 'Affiliations') {
+      const key = sepCountry ? 'Countries' : 'Affiliations';
+      return Array.isArray(connectionMap[key]) ? connectionMap[key] as string[] : [];
+    }
+
+    return Array.isArray(connectionMap[category]) ? connectionMap[category] as string[] : [];
+  };
 
   useEffect(() => {
     const loadInitialData = async () => {
@@ -78,7 +109,15 @@ function CompaniesPageContent() {
       setIsLoading(false);
       setIsGraphLoading(true);
 
-      const graphResult = await companyApi.searchCompanyGraph(payload);
+      const candidates = getGraphCandidates(connectionsResult.connections);
+      const singletonCount = candidates.filter((item) => extractCount(item) === 1).length;
+
+      let dropSingletons = false;
+      if (candidates.length > 100 && singletonCount > 0) {
+        dropSingletons = await askSingletonFilter(candidates.length, singletonCount);
+      }
+
+      const graphResult = await companyApi.searchCompanyGraph(payload, { dropSingletons });
       if (activeSearchRef.current !== searchId) return;
 
       setSearchResults((previous) => ({ ...(previous || connectionsResult), ...graphResult }));
@@ -101,6 +140,13 @@ function CompaniesPageContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
+      <SingletonFilterModal
+        visible={singletonPromptVisible}
+        connectionCount={singletonInfo.count}
+        singletonCount={singletonInfo.singletonCount}
+        onConfirm={handleSingletonConfirm}
+        onCancel={handleSingletonCancel}
+      />
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">

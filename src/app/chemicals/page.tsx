@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import Navigation from '@/components/Navigation';
 import SearchForm from '@/components/SearchForm';
 import NetworkViewer from '@/components/NetworkViewer';
 import { chemicalApi, handleApiError, ChemicalSearchResponse } from '@/services/api';
+import SingletonFilterModal from '@/components/SingletonFilterModal';
 
 export default function ChemicalsPage() {
   const [searchResults, setSearchResults] = useState<ChemicalSearchResponse | null>(null);
@@ -13,7 +15,26 @@ export default function ChemicalsPage() {
   const [error, setError] = useState<string>('');
   const [examples, setExamples] = useState<string[]>([]);
   const [inchikey, setInchikey] = useState('');
+  const [structureImageSrc, setStructureImageSrc] = useState<string | null>(null);
+  const [hideStructureImage, setHideStructureImage] = useState(false);
+  const [usedInchikeyFallback, setUsedInchikeyFallback] = useState(false);
   const activeSearchRef = useRef(0);
+  const singletonResolverRef = useRef<((v: boolean) => void) | null>(null);
+  const [singletonPromptVisible, setSingletonPromptVisible] = useState(false);
+  const [singletonInfo, setSingletonInfo] = useState({ count: 0, singletonCount: 0 });
+
+  const askSingletonFilter = (count: number, sc: number): Promise<boolean> => {
+    setSingletonInfo({ count, singletonCount: sc });
+    setSingletonPromptVisible(true);
+    return new Promise<boolean>((resolve) => { singletonResolverRef.current = resolve; });
+  };
+  const handleSingletonConfirm = () => { setSingletonPromptVisible(false); singletonResolverRef.current?.(true); };
+  const handleSingletonCancel  = () => { setSingletonPromptVisible(false); singletonResolverRef.current?.(false); };
+
+  const extractCount = (item: string): number | null => {
+    const match = item.match(/\((\d+)\)\s*$/);
+    return match ? parseInt(match[1], 10) : null;
+  };
 
   // Load initial data (examples and chemical names)
   useEffect(() => {
@@ -30,6 +51,37 @@ export default function ChemicalsPage() {
 
     loadInitialData();
   }, []);
+
+  useEffect(() => {
+    if (!searchResults?.success || !searchResults.chemical) {
+      setStructureImageSrc(null);
+      setHideStructureImage(false);
+      setUsedInchikeyFallback(false);
+      return;
+    }
+
+    const primarySrc = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(searchResults.chemical)}/PNG?record_type=2d`;
+    setStructureImageSrc(primarySrc);
+    setHideStructureImage(false);
+    setUsedInchikeyFallback(false);
+  }, [searchResults?.success, searchResults?.chemical]);
+
+  const handleStructureImageError = () => {
+    if (!searchResults?.inchikey || searchResults.inchikey === 'Error') {
+      setHideStructureImage(true);
+      return;
+    }
+
+    if (!usedInchikeyFallback) {
+      setUsedInchikeyFallback(true);
+      setStructureImageSrc(
+        `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/inchikey/${searchResults.inchikey}/PNG?record_type=2d`
+      );
+      return;
+    }
+
+    setHideStructureImage(true);
+  };
 
   const handleSearch = async (chemical: string) => {
     const searchId = Date.now();
@@ -59,7 +111,19 @@ export default function ChemicalsPage() {
       setIsLoading(false);
       setIsGraphLoading(true);
 
-      const graphResult = await chemicalApi.searchChemicalGraph(payload);
+      const fundingSources = Array.isArray(searchResults?.connections?.['Funding Sources'])
+        ? searchResults?.connections?.['Funding Sources'] as string[]
+        : Array.isArray(connectionsResult.connections?.['Funding Sources'])
+          ? connectionsResult.connections?.['Funding Sources'] as string[]
+          : [];
+      const singletonCount = fundingSources.filter((item) => extractCount(item) === 1).length;
+
+      let dropSingletons = false;
+      if (fundingSources.length > 100 && singletonCount > 0) {
+        dropSingletons = await askSingletonFilter(fundingSources.length, singletonCount);
+      }
+
+      const graphResult = await chemicalApi.searchChemicalGraph(payload, { dropSingletons });
       if (activeSearchRef.current !== searchId) return;
 
       setSearchResults((previous) => ({ ...(previous || connectionsResult), ...graphResult }));
@@ -78,6 +142,13 @@ export default function ChemicalsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
+      <SingletonFilterModal
+        visible={singletonPromptVisible}
+        connectionCount={singletonInfo.count}
+        singletonCount={singletonInfo.singletonCount}
+        onConfirm={handleSingletonConfirm}
+        onCancel={handleSingletonCancel}
+      />
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
@@ -136,21 +207,17 @@ export default function ChemicalsPage() {
                 {/* Chemical Structure Image */}
                 <div className="lg:w-80 flex flex-col items-center">
                   <div className="bg-white rounded-lg border border-gray-200 p-4 mb-2">
-                    <img
-                      src={`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(searchResults.chemical || '')}/PNG?record_type=2d`}
-                      alt={`${searchResults.chemical || 'Chemical'} chemical structure`}
-                      className="max-w-full h-auto max-h-64"
-                      onError={(e) => {
-                        // Fallback to InChIKey if chemical name fails
-                        if (searchResults.inchikey && searchResults.inchikey !== 'Error') {
-                          (e.target as HTMLImageElement).src =   
-                            `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/inchikey/${searchResults.inchikey}/PNG?record_type=2d`;
-                        } else {
-                          // Hide image if both fail
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }
-                      }}
-                    />
+                    {!hideStructureImage && structureImageSrc ? (
+                      <Image
+                        src={structureImageSrc}
+                        alt={`${searchResults.chemical || 'Chemical'} chemical structure`}
+                        width={320}
+                        height={320}
+                        className="max-w-full h-auto max-h-64"
+                        unoptimized
+                        onError={handleStructureImageError}
+                      />
+                    ) : null}
                   </div>
                   <p className="text-xs text-gray-500 text-center italic">Chemical Structure (Source: PubChem)</p>
                 </div>

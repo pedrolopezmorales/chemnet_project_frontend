@@ -136,9 +136,22 @@ export interface CompanyDetailsResponse {
 const postWithMode = async <TRequest, TResponse>(
   path: string,
   data: TRequest,
-  mode?: 'connections' | 'graph'
+  mode?: 'connections' | 'graph',
+  queryParams?: Record<string, string | number | boolean | undefined>
 ): Promise<TResponse> => {
-  const suffix = mode ? `?mode=${mode}` : '';
+  const params = new URLSearchParams();
+  if (mode) {
+    params.set('mode', mode);
+  }
+  if (queryParams) {
+    Object.entries(queryParams).forEach(([key, value]) => {
+      if (value !== undefined) {
+        params.set(key, String(value));
+      }
+    });
+  }
+
+  const suffix = params.toString() ? `?${params.toString()}` : '';
   const response = await apiClient.post(`${path}${suffix}`, data);
   return response.data;
 };
@@ -159,8 +172,13 @@ export const chemicalApi = {
     return postWithMode<ChemicalSearchRequest, ChemicalSearchResponse>('/chemicals/', data, 'connections');
   },
 
-  searchChemicalGraph: async (data: ChemicalSearchRequest): Promise<ChemicalSearchResponse> => {
-    return postWithMode<ChemicalSearchRequest, ChemicalSearchResponse>('/chemicals/', data, 'graph');
+  searchChemicalGraph: async (
+    data: ChemicalSearchRequest,
+    options?: { dropSingletons?: boolean }
+  ): Promise<ChemicalSearchResponse> => {
+    return postWithMode<ChemicalSearchRequest, ChemicalSearchResponse>('/chemicals/', data, 'graph', {
+      drop_singletons: options?.dropSingletons ? 1 : undefined,
+    });
   },
 };
 
@@ -180,8 +198,13 @@ export const companyApi = {
     return postWithMode<CompanySearchRequest, CompanySearchResponse>('/companies/', data, 'connections');
   },
 
-  searchCompanyGraph: async (data: CompanySearchRequest): Promise<CompanySearchResponse> => {
-    return postWithMode<CompanySearchRequest, CompanySearchResponse>('/companies/', data, 'graph');
+  searchCompanyGraph: async (
+    data: CompanySearchRequest,
+    options?: { dropSingletons?: boolean }
+  ): Promise<CompanySearchResponse> => {
+    return postWithMode<CompanySearchRequest, CompanySearchResponse>('/companies/', data, 'graph', {
+      drop_singletons: options?.dropSingletons ? 1 : undefined,
+    });
   },
 };
 
@@ -201,8 +224,13 @@ export const universityApi = {
     return postWithMode<UniversitySearchRequest, UniversitySearchResponse>('/universities/', data, 'connections');
   },
 
-  searchUniversityGraph: async (data: UniversitySearchRequest): Promise<UniversitySearchResponse> => {
-    return postWithMode<UniversitySearchRequest, UniversitySearchResponse>('/universities/', data, 'graph');
+  searchUniversityGraph: async (
+    data: UniversitySearchRequest,
+    options?: { dropSingletons?: boolean }
+  ): Promise<UniversitySearchResponse> => {
+    return postWithMode<UniversitySearchRequest, UniversitySearchResponse>('/universities/', data, 'graph', {
+      drop_singletons: options?.dropSingletons ? 1 : undefined,
+    });
   },
 };
 
