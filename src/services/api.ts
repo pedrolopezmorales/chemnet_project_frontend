@@ -26,6 +26,7 @@ export interface ChemicalSearchResponse {
   chemical?: string;
   inchikey?: string;
   iframe_url?: string;
+  graph_html?: string | null;
   connections?: ConnectionsMap;
   suggestions?: string[];
   message?: string;
@@ -46,6 +47,7 @@ export interface CompanySearchResponse {
   success: boolean;
   company?: string;
   iframe_url?: string;
+  graph_html?: string | null;
   connections?: ConnectionsMap;
   description?: {
     title: string;
@@ -71,6 +73,7 @@ export interface UniversitySearchResponse {
   success: boolean;
   university?: string;
   iframe_url?: string;
+  graph_html?: string | null;
   connections?: ConnectionsMap;
   suggestions?: string[];
   message?: string;
@@ -90,6 +93,7 @@ export interface ResearcherSearchResponse {
   success: boolean;
   researcher?: string;
   iframe_url?: string;
+  graph_html?: string | null;
   connections?: ConnectionsMap;
   suggestions?: string[];
   message?: string;

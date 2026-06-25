@@ -7,20 +7,22 @@ import type { ConnectionsMap } from '@/services/api';
 
 interface NetworkViewerProps {
   iframeUrl?: string;
+  graphHtml?: string | null;
   connections?: ConnectionsMap;
   title?: string;
   isGraphLoading?: boolean;
 }
 
-export default function NetworkViewer({ iframeUrl, connections, title, isGraphLoading = false }: NetworkViewerProps) {
+export default function NetworkViewer({ iframeUrl, graphHtml, connections, title, isGraphLoading = false }: NetworkViewerProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  if (!iframeUrl && !connections && !isGraphLoading) {
+  if (!iframeUrl && !graphHtml && !connections && !isGraphLoading) {
     return null;
   }
 
   const baseUrl = 'https://dabrahamsson.pythonanywhere.com';
   const fullIframeUrl = iframeUrl ? `${baseUrl}${iframeUrl}` : '';
+  const iframeSrcProps = graphHtml ? { srcDoc: graphHtml } : iframeUrl ? { src: fullIframeUrl } : {};
 
   return (
     <div className="w-full space-y-6">
@@ -52,7 +54,7 @@ export default function NetworkViewer({ iframeUrl, connections, title, isGraphLo
         </div>
         
         <div className={`${isFullscreen ? 'fixed inset-0 z-50 bg-white' : 'relative'}`}>
-          {isFullscreen && iframeUrl && (
+          {isFullscreen && (iframeUrl || graphHtml) && (
             <div className="flex justify-between items-center p-4 border-b border-gray-300 bg-gray-50">
               <h3 className="font-medium text-gray-700">Network Visualization - Fullscreen</h3>
               <button
@@ -64,9 +66,9 @@ export default function NetworkViewer({ iframeUrl, connections, title, isGraphLo
             </div>
           )}
           
-          {iframeUrl ? (
+          {iframeUrl || graphHtml ? (
             <iframe
-              src={fullIframeUrl}
+              {...iframeSrcProps}
               className={`w-full border-0 ${isFullscreen ? 'h-[calc(100vh-80px)]' : 'h-96'}`}
               title="Network Visualization"
               allow="fullscreen"
