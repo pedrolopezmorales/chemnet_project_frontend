@@ -231,6 +231,7 @@ export default function ChemicalsPage() {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <NetworkViewer
                 iframeUrl={searchResults.iframe_url}
+                graphHtml={searchResults.graph_html}
                 connections={searchResults.connections}
                 isGraphLoading={isGraphLoading}
                 title={`Chemical Network: ${searchResults.chemical}`}

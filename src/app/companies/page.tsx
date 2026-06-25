@@ -308,6 +308,7 @@ function CompaniesPageContent() {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
             <NetworkViewer
               iframeUrl={searchResults.iframe_url}
+              graphHtml={searchResults.graph_html}
               connections={searchResults.connections}
               isGraphLoading={isGraphLoading}
               title={`Funding Source Network: ${searchResults.company} (${category})`}
