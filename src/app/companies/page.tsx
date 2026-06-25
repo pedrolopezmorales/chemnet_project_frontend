@@ -16,17 +16,17 @@ function CompaniesPageContent() {
   const [error, setError] = useState<string>('');
   const [examples, setExamples] = useState<string[]>([]);
   const activeSearchRef = useRef(0);
-  const singletonResolverRef = useRef<((v: boolean) => void) | null>(null);
-  const [singletonPromptVisible, setSingletonPromptVisible] = useState(false);
-  const [singletonInfo, setSingletonInfo] = useState({ count: 0, singletonCount: 0 });
+  const filterResolverRef = useRef<((v: 0 | 1 | 2 | 3) => void) | null>(null);
+  const [filterPromptVisible, setFilterPromptVisible] = useState(false);
+  const [filterInfo, setFilterInfo] = useState({ count: 0, eligibleCount: 0 });
 
-  const askSingletonFilter = (count: number, sc: number): Promise<boolean> => {
-    setSingletonInfo({ count, singletonCount: sc });
-    setSingletonPromptVisible(true);
-    return new Promise<boolean>((resolve) => { singletonResolverRef.current = resolve; });
+  const askConnectionThreshold = (count: number, eligibleCount: number): Promise<0 | 1 | 2 | 3> => {
+    setFilterInfo({ count, eligibleCount });
+    setFilterPromptVisible(true);
+    return new Promise<0 | 1 | 2 | 3>((resolve) => { filterResolverRef.current = resolve; });
   };
-  const handleSingletonConfirm = () => { setSingletonPromptVisible(false); singletonResolverRef.current?.(true); };
-  const handleSingletonCancel  = () => { setSingletonPromptVisible(false); singletonResolverRef.current?.(false); };
+  const handleFilterChoose = (threshold: 1 | 2 | 3) => { setFilterPromptVisible(false); filterResolverRef.current?.(threshold); };
+  const handleFilterCancel  = () => { setFilterPromptVisible(false); filterResolverRef.current?.(0); };
   
   const [company, setCompany] = useState('');
   const [category, setCategory] = useState('Affiliations');
@@ -110,14 +110,19 @@ function CompaniesPageContent() {
       setIsGraphLoading(true);
 
       const candidates = getGraphCandidates(connectionsResult.connections);
-      const singletonCount = candidates.filter((item) => extractCount(item) === 1).length;
+      const eligibleCount = candidates.filter((item) => {
+        const count = extractCount(item);
+        return count !== null && count <= 3;
+      }).length;
 
-      let dropSingletons = false;
-      if (candidates.length > 100 && singletonCount > 0) {
-        dropSingletons = await askSingletonFilter(candidates.length, singletonCount);
+      let connectionThreshold: 0 | 1 | 2 | 3 = 0;
+      if (candidates.length > 100 && eligibleCount > 0) {
+        connectionThreshold = await askConnectionThreshold(candidates.length, eligibleCount);
       }
 
-      const graphResult = await companyApi.searchCompanyGraph(payload, { dropSingletons });
+      const graphResult = await companyApi.searchCompanyGraph(payload, {
+        connectionThreshold: connectionThreshold || undefined,
+      });
       if (activeSearchRef.current !== searchId) return;
 
       setSearchResults((previous) => ({ ...(previous || connectionsResult), ...graphResult }));
@@ -141,11 +146,11 @@ function CompaniesPageContent() {
     <div className="min-h-screen bg-gray-50">
       <Navigation />
       <SingletonFilterModal
-        visible={singletonPromptVisible}
-        connectionCount={singletonInfo.count}
-        singletonCount={singletonInfo.singletonCount}
-        onConfirm={handleSingletonConfirm}
-        onCancel={handleSingletonCancel}
+        visible={filterPromptVisible}
+        connectionCount={filterInfo.count}
+        eligibleCount={filterInfo.eligibleCount}
+        onChoose={handleFilterChoose}
+        onCancel={handleFilterCancel}
       />
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}

@@ -174,10 +174,10 @@ export const chemicalApi = {
 
   searchChemicalGraph: async (
     data: ChemicalSearchRequest,
-    options?: { dropSingletons?: boolean }
+    options?: { connectionThreshold?: 1 | 2 | 3 }
   ): Promise<ChemicalSearchResponse> => {
     return postWithMode<ChemicalSearchRequest, ChemicalSearchResponse>('/chemicals/', data, 'graph', {
-      drop_singletons: options?.dropSingletons ? 1 : undefined,
+      connection_threshold: options?.connectionThreshold,
     });
   },
 };
@@ -200,10 +200,10 @@ export const companyApi = {
 
   searchCompanyGraph: async (
     data: CompanySearchRequest,
-    options?: { dropSingletons?: boolean }
+    options?: { connectionThreshold?: 1 | 2 | 3 }
   ): Promise<CompanySearchResponse> => {
     return postWithMode<CompanySearchRequest, CompanySearchResponse>('/companies/', data, 'graph', {
-      drop_singletons: options?.dropSingletons ? 1 : undefined,
+      connection_threshold: options?.connectionThreshold,
     });
   },
 };
@@ -226,10 +226,10 @@ export const universityApi = {
 
   searchUniversityGraph: async (
     data: UniversitySearchRequest,
-    options?: { dropSingletons?: boolean }
+    options?: { connectionThreshold?: 1 | 2 | 3 }
   ): Promise<UniversitySearchResponse> => {
     return postWithMode<UniversitySearchRequest, UniversitySearchResponse>('/universities/', data, 'graph', {
-      drop_singletons: options?.dropSingletons ? 1 : undefined,
+      connection_threshold: options?.connectionThreshold,
     });
   },
 };
