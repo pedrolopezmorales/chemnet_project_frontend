@@ -14,6 +14,10 @@ const CATEGORY_COLORS: Record<string, string> = {
   Unknown: '#8B5CF6',
 };
 
+const CATEGORY_DISPLAY_NAMES: Record<string, string> = {
+  Unknown: 'Not Recognized',
+};
+
 const CONNECTION_DISPLAY_NAMES: Record<string, string> = {
   Inchikey: 'InChIKey',
   'Affiliation(s)': 'Affiliations',
@@ -36,12 +40,13 @@ function renderCategoryText(text: string): React.ReactNode {
   const fullTag = match[2] || '';
   const category = match[3] || 'Unknown';
   const suffix = match[4] || '';
+  const categoryDisplay = CATEGORY_DISPLAY_NAMES[category] ?? category;
 
   return (
     <>
       {prefix}
       <span style={{ color: CATEGORY_COLORS[category] || CATEGORY_COLORS.Unknown, fontWeight: 700 }}>
-        {fullTag}
+        [{categoryDisplay}]
       </span>
       {suffix}
     </>
