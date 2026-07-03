@@ -8,6 +8,10 @@ interface FundingTableProps {
   className?: string;
 }
 
+const formatClassificationLabel = (classification: string) => {
+  return classification.toLowerCase() === 'unknown' ? 'Not Recognized' : classification;
+};
+
 const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
   const [fundingData, setFundingData] = useState<FundingData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -142,7 +146,7 @@ const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
         </span>
         <span className="flex items-center">
           <span className="inline-block w-4 h-4 rounded mr-2 bg-purple-200"></span>
-          <span className="text-sm text-gray-700">Unknown</span>
+          <span className="text-sm text-gray-700">Not Recognized</span>
         </span>
       </div>
 
@@ -169,7 +173,7 @@ const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
               {item.count} studies
             </div>
             <div className="text-xs opacity-75 font-medium">
-              {item.classification}
+              {formatClassificationLabel(item.classification)}
             </div>
           </div>
         ))}
@@ -218,7 +222,7 @@ const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
                 <div className="border-b border-gray-100 pb-3">
                   <strong className="text-black">Classification:</strong>
                   <span className={`ml-2 px-2 py-1 rounded text-xs font-bold ${getClassificationBadgeColor(selectedCompany.classification)}`}>
-                    {selectedCompany.classification}
+                    {formatClassificationLabel(selectedCompany.classification)}
                   </span>
                 </div>
                 
