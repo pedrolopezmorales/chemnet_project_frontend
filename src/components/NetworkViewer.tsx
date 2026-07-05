@@ -69,7 +69,7 @@ export default function NetworkViewer({ iframeUrl, graphHtml, connections, title
           {iframeUrl || graphHtml ? (
             <iframe
               {...iframeSrcProps}
-              className={`w-full border-0 ${isFullscreen ? 'h-[calc(100vh-80px)]' : 'h-96'}`}
+              className={`w-full border-0 ${isFullscreen ? 'h-[calc(100vh-80px)]' : 'h-200'}`}
               title="Network Visualization"
               allow="fullscreen"
             />

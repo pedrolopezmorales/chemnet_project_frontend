@@ -303,6 +303,19 @@ function CompaniesPageContent() {
             )}
           </div>
         )}
+        {/* Info Section */}
+        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+          <h3 className="font-medium text-green-800 mb-3">How Funding Source Search Works:</h3>
+          <ul className="text-green-700 space-y-2">
+            <li>• <strong>Affiliations:</strong> Shows Funding Source relationships and partnerships</li>
+            <li>• <strong>Chemicals:</strong> Displays chemicals associated with the Funding Source</li>
+            <li>• <strong>Researchers:</strong> Shows researchers affiliated with the Funding Source</li>
+            <li>• <strong>Universities:</strong> Displays university collaborations</li>
+            <li>• Use filters to refine your search results</li>
+            <li>• Click on nodes to find exact studies</li>
+            <li>• Click on network nodes to explore connections</li>
+          </ul>
+        </div>
         {/* Results Section */}
         {searchResults && searchResults.success && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
@@ -334,18 +347,7 @@ function CompaniesPageContent() {
           </div>
         )}
 
-        {/* Info Section */}
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-          <h3 className="font-medium text-green-800 mb-3">How Funding Source Search Works:</h3>
-          <ul className="text-green-700 space-y-2">
-            <li>• <strong>Affiliations:</strong> Shows Funding Source relationships and partnerships</li>
-            <li>• <strong>Chemicals:</strong> Displays chemicals associated with the Funding Source</li>
-            <li>• <strong>Researchers:</strong> Shows researchers affiliated with the Funding Source</li>
-            <li>• <strong>Universities:</strong> Displays university collaborations</li>
-            <li>• Use filters to refine your search results</li>
-            <li>• Click on network nodes to explore connections</li>
-          </ul>
-        </div>
+        
       </div>
     </div>
   );

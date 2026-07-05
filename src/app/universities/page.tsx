@@ -242,7 +242,18 @@ export default function UniversitiesPage() {
             </div>
           )}
         </div>
-
+        {/* Info Section */}
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
+          <h3 className="font-medium text-purple-800 mb-3">How University Search Works:</h3>
+          <ul className="text-purple-700 space-y-2">
+            <li>• <strong>Funding Sources:</strong> Shows funding organizations and research grants</li>
+            <li>• <strong>Chemicals:</strong> Displays chemicals researched by the university</li>
+            <li>• Use chemical group filters to focus on specific chemical types</li>
+            <li>• Click on network nodes to explore research connections</li>
+            <li>• Click on nodes to find exact studies</li>
+            <li>• Discover collaboration patterns and research networks</li>
+          </ul>
+        </div>
         {/* Results Section */}
         {searchResults && searchResults.success && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
@@ -274,17 +285,7 @@ export default function UniversitiesPage() {
           </div>
         )}
 
-        {/* Info Section */}
-        <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
-          <h3 className="font-medium text-purple-800 mb-3">How University Search Works:</h3>
-          <ul className="text-purple-700 space-y-2">
-            <li>• <strong>Funding Sources:</strong> Shows funding organizations and research grants</li>
-            <li>• <strong>Chemicals:</strong> Displays chemicals researched by the university</li>
-            <li>• Use chemical group filters to focus on specific chemical types</li>
-            <li>• Click on network nodes to explore research connections</li>
-            <li>• Discover collaboration patterns and research networks</li>
-          </ul>
-        </div>
+        
       </div>
     </div>
   );

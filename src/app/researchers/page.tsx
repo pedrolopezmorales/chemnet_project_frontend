@@ -254,7 +254,18 @@ export default function ResearchersPage() {
             </button>
           </div>
         )}
-
+        {/* Info Section */}
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
+          <h3 className="font-medium text-orange-800 mb-3">How Researcher Search Works:</h3>
+          <ul className="text-orange-700 space-y-2">
+            <li>• <strong>Multiple Affiliations:</strong> Some researchers appear in multiple institutions</li>
+            <li>• <strong>Select Specific:</strong> Choose a specific researcher profile to focus on one affiliation</li>
+            <li>• <strong>Combine All:</strong> Merge all affiliations of a researcher into one network</li>
+            <li>• <strong>Collaboration Networks:</strong> Explore research partnerships and co-authorships</li>
+            <li>• Click on nodes to find exact studies</li>
+            <li>• Click on network nodes to discover research connections</li>
+          </ul>
+        </div>
         {/* Results Section */}
         {searchResults && searchResults.success && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
@@ -285,17 +296,7 @@ export default function ResearchersPage() {
           </div>
         )}
 
-        {/* Info Section */}
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
-          <h3 className="font-medium text-orange-800 mb-3">How Researcher Search Works:</h3>
-          <ul className="text-orange-700 space-y-2">
-            <li>• <strong>Multiple Affiliations:</strong> Some researchers appear in multiple institutions</li>
-            <li>• <strong>Select Specific:</strong> Choose a specific researcher profile to focus on one affiliation</li>
-            <li>• <strong>Combine All:</strong> Merge all affiliations of a researcher into one network</li>
-            <li>• <strong>Collaboration Networks:</strong> Explore research partnerships and co-authorships</li>
-            <li>• Click on network nodes to discover research connections</li>
-          </ul>
-        </div>
+        
       </div>
     </div>
   );

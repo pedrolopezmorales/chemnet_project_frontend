@@ -185,7 +185,17 @@ export default function ChemicalsPage() {
             error={error}
           />
         </div>
-
+        {/* Info Section */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-8">
+          <h3 className="font-medium text-blue-800 mb-2">How it works:</h3>
+          <ul className="text-blue-700 text-sm space-y-1">
+            <li>• Enter a chemical name to explore its network connections</li>
+            <li>• Add an InChIKey for more precise identification</li>
+            <li>• View interactive network visualizations showing chemical relationships</li>
+            <li>• Click on nodes to find exact studies</li>
+            <li>• Click suggestions if your search term is not found</li>
+          </ul>
+        </div>
         {/* Results Section */}
         {searchResults && searchResults.success && (
           <>
@@ -240,16 +250,7 @@ export default function ChemicalsPage() {
           </>
         )}
 
-        {/* Info Section */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-8">
-          <h3 className="font-medium text-blue-800 mb-2">How it works:</h3>
-          <ul className="text-blue-700 text-sm space-y-1">
-            <li>• Enter a chemical name to explore its network connections</li>
-            <li>• Add an InChIKey for more precise identification</li>
-            <li>• View interactive network visualizations showing chemical relationships</li>
-            <li>• Click suggestions if your search term is not found</li>
-          </ul>
-        </div>
+        
       </div>
     </div>
   );
