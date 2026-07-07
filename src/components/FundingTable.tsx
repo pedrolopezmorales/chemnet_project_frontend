@@ -8,6 +8,8 @@ interface FundingTableProps {
   className?: string;
 }
 
+type FundingCategoryFilter = 'all' | 'government' | 'university' | 'foundation' | 'company' | 'unknown';
+
 const formatClassificationLabel = (classification: string) => {
   return classification.toLowerCase() === 'unknown' ? 'Not Recognized' : classification;
 };
@@ -16,19 +18,29 @@ const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
   const [fundingData, setFundingData] = useState<FundingData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<FundingCategoryFilter>('all');
   const [selectedCompany, setSelectedCompany] = useState<FundingData | null>(null);
   const [companyDetails, setCompanyDetails] = useState<CompanyDetailsResponse | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
 
-  useEffect(() => {
-    loadFundingData();
-  }, []);
+  const categoryButtons: Array<{ value: FundingCategoryFilter; label: string }> = [
+    { value: 'all', label: 'All' },
+    { value: 'government', label: 'Government' },
+    { value: 'university', label: 'University' },
+    { value: 'foundation', label: 'Foundation' },
+    { value: 'company', label: 'Company' },
+    { value: 'unknown', label: 'Not Recognized' },
+  ];
 
-  const loadFundingData = async () => {
+  useEffect(() => {
+    loadFundingData(activeCategory);
+  }, [activeCategory]);
+
+  const loadFundingData = async (category: FundingCategoryFilter = 'all') => {
     try {
       setLoading(true);
       console.log('Loading funding data...');
-      const response = await fundingApi.getFundingTable();
+      const response = await fundingApi.getFundingTable({ category, topN: 50 });
       console.log('Funding API response:', response);
       
       if (response.success && response.funding_data) {
@@ -121,9 +133,30 @@ const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
       <div className="mb-6 text-center">
         <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center justify-center">
           <Building2 className="mr-2" size={28} />
-          Top Funding Sources
+          Funding Source Periodic Tables
         </h2>
-        <p className="text-gray-600">Click any funding source to see detailed information</p>
+        <p className="text-gray-600">Choose a category to view its periodic table, then click a source for details</p>
+      </div>
+
+      {/* Category Selector */}
+      <div className="mb-6 flex flex-wrap items-center justify-center gap-2">
+        {categoryButtons.map((button) => {
+          const isActive = activeCategory === button.value;
+          return (
+            <button
+              key={button.value}
+              type="button"
+              onClick={() => setActiveCategory(button.value)}
+              className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+                isActive
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {button.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Color Code Legend */}
@@ -182,9 +215,9 @@ const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
       {fundingData.length === 0 && !loading && (
         <div className="text-center text-gray-500 py-8">
           <Building2 size={48} className="mx-auto mb-4 opacity-50" />
-          <p>No funding data available</p>
+          <p>No funding data available for this category</p>
           <button 
-            onClick={loadFundingData}
+            onClick={() => loadFundingData(activeCategory)}
             className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
           >
             Retry

@@ -121,6 +121,8 @@ export interface FundingTableResponse {
   success: boolean;
   funding_data?: FundingData[];
   message?: string;
+  category?: string;
+  top_n?: number;
 }
 
 export interface CompanyDetailsResponse {
@@ -254,12 +256,20 @@ export const researcherApi = {
 
 export const fundingApi = {
   // Get funding table data
-  getFundingTable: async (): Promise<FundingTableResponse> => {
+  getFundingTable: async (options?: { category?: 'all' | 'government' | 'university' | 'foundation' | 'company' | 'unknown'; topN?: number }): Promise<FundingTableResponse> => {
     console.log('getFundingTable called');
     
     try {
       console.log('Calling backend API for funding table...');
-      const response = await apiClient.get('/funding-table/');
+      const params = new URLSearchParams();
+      if (options?.category) {
+        params.set('category', options.category);
+      }
+      if (options?.topN) {
+        params.set('top_n', String(options.topN));
+      }
+      const suffix = params.toString() ? `?${params.toString()}` : '';
+      const response = await apiClient.get(`/funding-table/${suffix}`);
       console.log('Backend response:', response.data);
       return response.data;
     } catch (error) {
