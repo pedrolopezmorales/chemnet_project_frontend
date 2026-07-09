@@ -16,6 +16,7 @@ export default function ResearchersPage() {
   const [researcher, setResearcher] = useState('');
   const [selectedIndex, setSelectedIndex] = useState<number | undefined>(undefined);
   const [combine, setCombine] = useState(false);
+  const [category, setCategory] = useState<'Funding Sources' | 'Collaborators'>('Funding Sources');
 
   // Load initial data
   useEffect(() => {
@@ -47,7 +48,8 @@ export default function ResearchersPage() {
       const result = await researcherApi.searchResearcher({
         researcher: researcher.trim(),
         selected_index: selectedIndex,
-        combine: combine
+        combine: combine,
+        category: category
       });
       
       setSearchResults(result);
@@ -81,7 +83,8 @@ export default function ResearchersPage() {
       const result = await researcherApi.searchResearcher({
         researcher: researcher.trim(),
         selected_index: index,
-        combine: false
+        combine: false,
+        category: category
       });
       
       setSearchResults(result);
@@ -109,7 +112,8 @@ export default function ResearchersPage() {
       const result = await researcherApi.searchResearcher({
         researcher: researcher.trim(),
         selected_index: undefined,
-        combine: true
+        combine: true,
+        category: category
       });
       
       setSearchResults(result);
@@ -170,6 +174,29 @@ export default function ResearchersPage() {
                   <Search size={20} />
                   Search
                 </button>
+              </div>
+            </div>
+
+            {/* Compare Target Selector */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Compare To
+              </label>
+              <div className="flex flex-wrap gap-3">
+                {(['Funding Sources', 'Collaborators'] as const).map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => setCategory(option)}
+                    className={`px-4 py-2 rounded-full border text-sm font-medium transition-colors ${
+                      category === option
+                        ? 'bg-orange-600 text-white border-orange-600'
+                        : 'bg-white text-gray-700 border-gray-300 hover:border-orange-300 hover:text-orange-700'
+                    }`}
+                  >
+                    {option}
+                  </button>
+                ))}
               </div>
             </div>
           </form>
@@ -273,7 +300,7 @@ export default function ResearchersPage() {
               iframeUrl={searchResults.iframe_url}
               graphHtml={searchResults.graph_html}
               connections={searchResults.connections}
-              title={`Researcher Network: ${searchResults.researcher}${combine ? ' (Combined)' : ''}`}
+              title={`Researcher Network: ${searchResults.researcher}${combine ? ' (Combined)' : ''} · ${category}`}
             />
           </div>
         )}

@@ -87,6 +87,7 @@ export interface ResearcherSearchRequest {
   researcher: string;
   selected_index?: number;
   combine?: boolean;
+  category?: 'Funding Sources' | 'Collaborators';
 }
 
 export interface ResearcherSearchResponse {
@@ -109,6 +110,7 @@ export interface ResearcherMatch {
   Country: string;
   Department?: string;
   Companies?: string[];
+  Collaborators?: string[];
 }
 
 export interface FundingData {

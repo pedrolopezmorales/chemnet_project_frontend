@@ -28,6 +28,7 @@ const CONNECTION_DISPLAY_NAMES: Record<string, string> = {
   Universities: 'Universities',
   Chemicals: 'Chemicals',
   Companies: 'Companies',
+  Collaborators: 'Collaborators',
 };
 
 function renderCategoryText(text: string): React.ReactNode {
