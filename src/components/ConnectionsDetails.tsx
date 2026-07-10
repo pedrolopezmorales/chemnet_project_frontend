@@ -7,11 +7,11 @@ interface ConnectionsDetailsProps {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-  Government: '#FF6B6B',
-  University: '#96CEB4',
-  Foundation: '#4ECDC4',
-  Company: '#EAB308',
-  Unknown: '#8B5CF6',
+  Government: '#DD403A',
+  University: '#7B4B94',
+  Foundation: '#B7E3CC',
+  Company: '#7D82B8',
+  Unknown: '#FFC145',
 };
 
 const CATEGORY_DISPLAY_NAMES: Record<string, string> = {

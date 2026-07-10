@@ -67,21 +67,21 @@ const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
 
   const getClassificationColor = (classification: string) => {
     switch (classification.toLowerCase()) {
-      case 'government': return 'bg-red-500 text-white hover:bg-red-600';
-      case 'university': return 'bg-green-400 text-black hover:bg-green-500';
-      case 'foundation': return 'bg-teal-500 text-white hover:bg-teal-600';
-      case 'company': return 'bg-yellow-300 text-black hover:bg-yellow-400';
-      default: return 'bg-purple-200 text-black hover:bg-purple-300';
+      case 'government': return 'bg-[#DD403A] text-white hover:bg-[#DD403A]';
+      case 'university': return 'bg-[#7B4B94] text-white hover:bg-[#7B4B94]';
+      case 'foundation': return 'bg-[#B7E3CC] text-black hover:bg-[#B7E3CC]';
+      case 'company': return 'bg-[#7D82B8] text-white hover:bg-[#7D82B8]';
+      default: return 'bg-[#FFC145] text-black hover:bg-[#FFC145]';
     }
   };
 
   const getClassificationBadgeColor = (classification: string) => {
     switch (classification.toLowerCase()) {
-      case 'government': return 'bg-red-500 text-white';
-      case 'university': return 'bg-green-400 text-black';
-      case 'foundation': return 'bg-teal-500 text-white';
-      case 'company': return 'bg-yellow-300 text-black';
-      default: return 'bg-purple-200 text-black';
+      case 'government': return 'bg-[#DD403A] text-white';
+      case 'university': return 'bg-[#7B4B94] text-white';
+      case 'foundation': return 'bg-[#B7E3CC] text-black';
+      case 'company': return 'bg-[#7D82B8] text-white';
+      default: return 'bg-[#FFC145] text-black';
     }
   };
 
@@ -162,23 +162,23 @@ const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
       {/* Color Code Legend */}
       <div className="mb-4 flex flex-wrap items-center justify-center gap-3">
         <span className="flex items-center">
-          <span className="inline-block w-4 h-4 rounded mr-2 bg-red-500"></span>
+          <span className="inline-block w-4 h-4 rounded mr-2 bg-[#DD403A]"></span>
           <span className="text-sm text-gray-700">Government</span>
         </span>
         <span className="flex items-center">
-          <span className="inline-block w-4 h-4 rounded mr-2 bg-green-400"></span>
+          <span className="inline-block w-4 h-4 rounded mr-2 bg-[#7B4B94]"></span>
           <span className="text-sm text-gray-700">University</span>
         </span>
         <span className="flex items-center">
-          <span className="inline-block w-4 h-4 rounded mr-2 bg-yellow-300"></span>
+          <span className="inline-block w-4 h-4 rounded mr-2 bg-[#7D82B8]"></span>
           <span className="text-sm text-gray-700">Company</span>
         </span>
         <span className="flex items-center">
-          <span className="inline-block w-4 h-4 rounded mr-2 bg-teal-500"></span>
+          <span className="inline-block w-4 h-4 rounded mr-2 bg-[#B7E3CC]"></span>
           <span className="text-sm text-gray-700">Foundation</span>
         </span>
         <span className="flex items-center">
-          <span className="inline-block w-4 h-4 rounded mr-2 bg-purple-200"></span>
+          <span className="inline-block w-4 h-4 rounded mr-2 bg-[#FFC145]"></span>
           <span className="text-sm text-gray-700">Not Recognized</span>
         </span>
       </div>
