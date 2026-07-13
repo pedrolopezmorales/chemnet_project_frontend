@@ -1,5 +1,5 @@
 import React from 'react';
-import { Network } from 'lucide-react';
+import { Network, Circle } from 'lucide-react';
 
 interface ConnectionsDetailsProps {
   connections: Record<string, any>;
@@ -72,8 +72,17 @@ const ConnectionsDetails: React.FC<ConnectionsDetailsProps> = ({ connections, ti
     // Handle arrays
     if (Array.isArray(value)) {
       return value.map((item, index) => (
-        <li key={index} className="text-white-700">
-          {typeof item === 'string' ? renderCategoryText(item) : JSON.stringify(item)}
+        <li key={index} className="flex items-start gap-2 text-gray-800">
+          <Circle
+            size={8}
+            className="mt-2 text-blue-900 fill-current flex-shrink-0"
+          />
+
+          <span>
+            {typeof item === "string"
+              ? renderCategoryText(item)
+              : JSON.stringify(item)}
+          </span>
         </li>
       ));
     }
@@ -102,6 +111,7 @@ const ConnectionsDetails: React.FC<ConnectionsDetailsProps> = ({ connections, ti
             <summary className="cursor-pointer font-semibold text-blue-900 select-none">
               {CONNECTION_DISPLAY_NAMES[key] ?? key}
             </summary>
+
             <ul className="space-y-1 ml-5 mt-2 text-gray-800">
               {renderConnectionValue(key, items)}
             </ul>
