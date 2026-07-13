@@ -204,15 +204,22 @@ function CompaniesPageContent() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Category
                 </label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-green-600"
-                >
-                  {categoryOptions.map(option => (
-                    <option key={option} value={option}>{option}</option>
-                  ))}
-                </select>
+                <div className="flex flex-wrap gap-3">
+                {(['Affiliations', 'Chemicals', 'Researchers', 'Universities'] as const).map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => setCategory(option)}
+                    className={`px-4 py-2 rounded-full border text-sm font-medium transition-colors ${
+                      category === option
+                        ? 'bg-green-600 text-white border-green-600'
+                        : 'bg-white text-gray-700 border-gray-300 hover:border-green-300 hover:text-green-700'
+                    }`}
+                  >
+                    {option}
+                  </button>
+                ))}
+                </div>
               </div>
 
               {/* Chemical Group (only for Chemicals category) */}
