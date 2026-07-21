@@ -33,7 +33,7 @@ export default function NetworkViewer({ iframeUrl, graphHtml, connections, title
       {/* Network Visualization */}
       <div className="border border-gray-300 rounded-lg overflow-hidden bg-white shadow-sm">
         <div className="flex justify-between items-center p-3 bg-gray-50 border-b border-gray-300">
-          <h3 className="font-medium text-gray-700">Network Visualization</h3>
+          <h3 className="font-medium text-gray-700">Network Visualization (Scroll within Graph Window to See More)</h3>
           {iframeUrl && (
             <div className="flex gap-2">
               <button
