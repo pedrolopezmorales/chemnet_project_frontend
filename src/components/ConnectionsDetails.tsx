@@ -24,11 +24,11 @@ const CONNECTION_DISPLAY_NAMES: Record<string, string> = {
   'Funding Sources': 'Funding Sources [Category]',
   Affiliations: 'Affiliations',
   Countries: 'Countries',
-  Researchers: 'Researchers',
+  Researchers: 'Researchers [Category]',
   Universities: 'Universities',
   Chemicals: 'Chemicals',
   Companies: 'Companies',
-  Collaborators: 'Collaborators',
+  Collaborators: 'Collaborators [Category]',
 };
 
 function renderCategoryText(text: string): React.ReactNode {
