@@ -201,7 +201,9 @@ export default function ChemicalsPage() {
           <>
             {/* Chemical Description */}
             <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
-              <h3 className="font-semibold text-green-800 mb-3 text-lg">Chemical Information (Source: PubChem)</h3>
+              <h3 className="font-semibold text-green-800 mb-3 text-lg">
+                Chemical Information (Source: {searchResults.description_source || 'Not Available'})
+              </h3>
               
               <div className="flex flex-col lg:flex-row gap-6">
                 {/* Text Information */}
@@ -210,7 +212,7 @@ export default function ChemicalsPage() {
                   {searchResults.description ? (
                     <p className="text-sm leading-relaxed">{searchResults.description}</p>
                   ) : (
-                    <p className="text-sm text-gray-600 italic">No additional description available from PubChem.</p>
+                    <p className="text-sm text-gray-600 italic">No additional description available from the current sources.</p>
                   )}
                   {searchResults.inchikey && searchResults.inchikey !== 'Error' && (
                     <p className="text-xs text-green-600 mt-2 font-mono">InChIKey: {searchResults.inchikey}</p>
@@ -232,7 +234,9 @@ export default function ChemicalsPage() {
                       />
                     ) : null}
                   </div>
-                  <p className="text-xs text-gray-500 text-center italic">Chemical Structure (Source: PubChem)</p>
+                  <p className="text-xs text-gray-500 text-center italic">
+                    Chemical Structure (Source: {searchResults.image_source || 'Not Available'})
+                  </p>
                 </div>
               </div>
             </div>

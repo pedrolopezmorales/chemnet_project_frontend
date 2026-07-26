@@ -33,7 +33,9 @@ export interface ChemicalSearchResponse {
   example_chemicals?: Array<{name: string; inchikey: string}>;
   all_chemical_names?: string[];
   description?: string;
+  description_source?: string;
   image_url?: string;
+  image_source?: string;
 }
 
 export interface CompanySearchRequest {
