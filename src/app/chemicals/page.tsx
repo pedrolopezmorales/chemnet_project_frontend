@@ -9,6 +9,8 @@ import { chemicalApi, handleApiError, ChemicalSearchResponse } from '@/services/
 import SingletonFilterModal from '@/components/SingletonFilterModal';
 
 export default function ChemicalsPage() {
+  const DESCRIPTION_COLLAPSE_THRESHOLD = 1200;
+  const DESCRIPTION_PREVIEW_LENGTH = 700;
   const [searchResults, setSearchResults] = useState<ChemicalSearchResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isGraphLoading, setIsGraphLoading] = useState(false);
@@ -18,6 +20,7 @@ export default function ChemicalsPage() {
   const [structureImageSrc, setStructureImageSrc] = useState<string | null>(null);
   const [hideStructureImage, setHideStructureImage] = useState(false);
   const [usedInchikeyFallback, setUsedInchikeyFallback] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const activeSearchRef = useRef(0);
   const filterResolverRef = useRef<((v: 0 | 1 | 2 | 3) => void) | null>(null);
   const [filterPromptVisible, setFilterPromptVisible] = useState(false);
@@ -65,6 +68,10 @@ export default function ChemicalsPage() {
     setHideStructureImage(false);
     setUsedInchikeyFallback(false);
   }, [searchResults?.success, searchResults?.chemical]);
+
+  useEffect(() => {
+    setIsDescriptionExpanded(false);
+  }, [searchResults?.description]);
 
   const handleStructureImageError = () => {
     if (!searchResults?.inchikey || searchResults.inchikey === 'Error') {
@@ -210,7 +217,29 @@ export default function ChemicalsPage() {
                 <div className="flex-1 text-green-700">
                   <p className="font-medium text-gray-800 mb-2">{searchResults.chemical}</p>
                   {searchResults.description ? (
-                    <p className="text-sm leading-relaxed">{searchResults.description}</p>
+                    <>
+                      <div className="space-y-3 text-sm leading-relaxed">
+                        {(searchResults.description.length > DESCRIPTION_COLLAPSE_THRESHOLD && !isDescriptionExpanded
+                          ? `${searchResults.description.slice(0, DESCRIPTION_PREVIEW_LENGTH).trimEnd()}...`
+                          : searchResults.description)
+                        .split(/\n\s*\n/)
+                        .filter((paragraph) => paragraph.trim().length > 0)
+                        .map((paragraph, index) => (
+                          <p key={index} className="whitespace-pre-line">
+                            {paragraph}
+                          </p>
+                        ))}
+                      </div>
+                      {searchResults.description.length > DESCRIPTION_COLLAPSE_THRESHOLD && (
+                        <button
+                          type="button"
+                          onClick={() => setIsDescriptionExpanded((prev) => !prev)}
+                          className="mt-2 text-sm font-semibold text-green-800 underline underline-offset-2 hover:text-green-900"
+                        >
+                          {isDescriptionExpanded ? 'Show less' : 'Show more'}
+                        </button>
+                      )}
+                    </>
                   ) : (
                     <p className="text-sm text-gray-600 italic">No additional description available from the current sources.</p>
                   )}
