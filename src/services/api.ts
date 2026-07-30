@@ -36,6 +36,9 @@ export interface ChemicalSearchResponse {
   description_source?: string;
   image_url?: string;
   image_source?: string;
+  image_title?: string;
+  image_description?: string;
+  image_page_title?: string;
 }
 
 export interface CompanySearchRequest {

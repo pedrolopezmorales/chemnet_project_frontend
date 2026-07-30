@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
 import Navigation from '@/components/Navigation';
 import SearchForm from '@/components/SearchForm';
 import NetworkViewer from '@/components/NetworkViewer';
@@ -63,17 +62,22 @@ export default function ChemicalsPage() {
       return;
     }
 
-    const primarySrc = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(searchResults.chemical)}/PNG?record_type=2d`;
+    const primarySrc = searchResults.image_url || `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(searchResults.chemical)}/PNG?record_type=2d`;
     setStructureImageSrc(primarySrc);
     setHideStructureImage(false);
     setUsedInchikeyFallback(false);
-  }, [searchResults?.success, searchResults?.chemical]);
+  }, [searchResults?.success, searchResults?.chemical, searchResults?.image_url]);
 
   useEffect(() => {
     setIsDescriptionExpanded(false);
   }, [searchResults?.description]);
 
   const handleStructureImageError = () => {
+    if (searchResults?.image_source === 'Wikipedia') {
+      setHideStructureImage(true);
+      return;
+    }
+
     if (!searchResults?.inchikey || searchResults.inchikey === 'Error') {
       setHideStructureImage(true);
       return;
@@ -89,6 +93,10 @@ export default function ChemicalsPage() {
 
     setHideStructureImage(true);
   };
+
+  const structureTitle = searchResults?.image_source === 'Wikipedia'
+    ? (searchResults?.image_description || searchResults?.image_title || searchResults?.image_page_title || 'Wikipedia reference image')
+    : 'Chemical Structure';
 
   const handleSearch = async (chemical: string) => {
     const searchId = Date.now();
@@ -250,15 +258,15 @@ export default function ChemicalsPage() {
 
                 {/* Chemical Structure Image */}
                 <div className="lg:w-80 flex flex-col items-center">
+                  <p className="text-sm font-semibold text-gray-700 text-center mb-2">
+                    {structureTitle}
+                  </p>
                   <div className="bg-white rounded-lg border border-gray-200 p-4 mb-2">
                     {!hideStructureImage && structureImageSrc ? (
-                      <Image
+                      <img
                         src={structureImageSrc}
                         alt={`${searchResults.chemical || 'Chemical'} chemical structure`}
-                        width={320}
-                        height={320}
                         className="max-w-full h-auto max-h-64"
-                        unoptimized
                         onError={handleStructureImageError}
                       />
                     ) : null}
