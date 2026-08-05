@@ -7,6 +7,66 @@ import NetworkViewer from '@/components/NetworkViewer';
 import { chemicalApi, handleApiError, ChemicalSearchResponse } from '@/services/api';
 import SingletonFilterModal from '@/components/SingletonFilterModal';
 
+const DESCRIPTION_SECTION_TITLES = [
+  'Industry uses:',
+  'Consumer uses:',
+  'Common function categories:',
+  'General use categories:',
+  'Proxy names (PubChem):',
+] as const;
+
+type DescriptionSection = {
+  title: string;
+  body: string;
+};
+
+type ParsedDescription = {
+  mainText: string;
+  sections: DescriptionSection[];
+};
+
+function parseChemicalDescription(text?: string): ParsedDescription {
+  const normalized = String(text || '').replace(/\r\n/g, '\n').trim();
+  if (!normalized) {
+    return { mainText: '', sections: [] };
+  }
+
+  const blocks = normalized
+    .split(/\n\s*\n/)
+    .map((block) => block.trim())
+    .filter((block) => block.length > 0);
+
+  const sections: DescriptionSection[] = [];
+  const mainBlocks: string[] = [];
+
+  blocks.forEach((block) => {
+    const lines = block.split('\n');
+    const candidateTitle = lines[0]?.trim() || '';
+    if (DESCRIPTION_SECTION_TITLES.includes(candidateTitle as (typeof DESCRIPTION_SECTION_TITLES)[number])) {
+      sections.push({
+        title: candidateTitle,
+        body: lines.slice(1).join('\n').trim(),
+      });
+      return;
+    }
+    mainBlocks.push(block);
+  });
+
+  return {
+    mainText: mainBlocks.join('\n\n').trim(),
+    sections,
+  };
+}
+
+function splitBullets(body: string): string[] {
+  return body
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0 && line.startsWith('-'))
+    .map((line) => line.replace(/^-\s*/, '').trim())
+    .filter((line) => line.length > 0);
+}
+
 export default function ChemicalsPage() {
   const DESCRIPTION_COLLAPSE_THRESHOLD = 1200;
   const DESCRIPTION_PREVIEW_LENGTH = 700;
@@ -19,7 +79,7 @@ export default function ChemicalsPage() {
   const [structureImageSrc, setStructureImageSrc] = useState<string | null>(null);
   const [hideStructureImage, setHideStructureImage] = useState(false);
   const [usedInchikeyFallback, setUsedInchikeyFallback] = useState(false);
-  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [isMainDescriptionExpanded, setIsMainDescriptionExpanded] = useState(false);
   const activeSearchRef = useRef(0);
   const filterResolverRef = useRef<((v: 0 | 1 | 2 | 3) => void) | null>(null);
   const [filterPromptVisible, setFilterPromptVisible] = useState(false);
@@ -69,7 +129,7 @@ export default function ChemicalsPage() {
   }, [searchResults?.success, searchResults?.chemical, searchResults?.image_url]);
 
   useEffect(() => {
-    setIsDescriptionExpanded(false);
+    setIsMainDescriptionExpanded(false);
   }, [searchResults?.description]);
 
   const handleStructureImageError = () => {
@@ -97,6 +157,14 @@ export default function ChemicalsPage() {
   const structureTitle = searchResults?.image_source === 'Wikipedia'
     ? (searchResults?.image_description || searchResults?.image_title || searchResults?.image_page_title || 'Wikipedia reference image')
     : 'Chemical Structure';
+
+  const parsedDescription = parseChemicalDescription(searchResults?.description);
+  const shouldCollapseMainDescription =
+    parsedDescription.mainText.length > DESCRIPTION_COLLAPSE_THRESHOLD;
+  const mainDescriptionText =
+    shouldCollapseMainDescription && !isMainDescriptionExpanded
+      ? `${parsedDescription.mainText.slice(0, DESCRIPTION_PREVIEW_LENGTH).trimEnd()}...`
+      : parsedDescription.mainText;
 
   const handleSearch = async (chemical: string) => {
     const searchId = Date.now();
@@ -226,26 +294,54 @@ export default function ChemicalsPage() {
                   <p className="font-medium text-gray-800 mb-2">{searchResults.chemical}</p>
                   {searchResults.description ? (
                     <>
-                      <div className="space-y-3 text-sm leading-relaxed">
-                        {(searchResults.description.length > DESCRIPTION_COLLAPSE_THRESHOLD && !isDescriptionExpanded
-                          ? `${searchResults.description.slice(0, DESCRIPTION_PREVIEW_LENGTH).trimEnd()}...`
-                          : searchResults.description)
-                        .split(/\n\s*\n/)
-                        .filter((paragraph) => paragraph.trim().length > 0)
-                        .map((paragraph, index) => (
-                          <p key={index} className="whitespace-pre-line">
-                            {paragraph}
-                          </p>
-                        ))}
-                      </div>
-                      {searchResults.description.length > DESCRIPTION_COLLAPSE_THRESHOLD && (
+                      {parsedDescription.mainText ? (
+                        <div className="space-y-3 text-sm leading-relaxed">
+                          {mainDescriptionText
+                            .split(/\n\s*\n/)
+                            .filter((paragraph) => paragraph.trim().length > 0)
+                            .map((paragraph, index) => (
+                              <p key={`main-${index}`} className="whitespace-pre-line">
+                                {paragraph}
+                              </p>
+                            ))}
+                        </div>
+                      ) : null}
+                      {shouldCollapseMainDescription && (
                         <button
                           type="button"
-                          onClick={() => setIsDescriptionExpanded((prev) => !prev)}
+                          onClick={() => setIsMainDescriptionExpanded((prev) => !prev)}
                           className="mt-2 text-sm font-semibold text-green-800 underline underline-offset-2 hover:text-green-900"
                         >
-                          {isDescriptionExpanded ? 'Show less' : 'Show more'}
+                          {isMainDescriptionExpanded ? 'Show less main description' : 'Show more main description'}
                         </button>
+                      )}
+                      {parsedDescription.sections.length > 0 && (
+                        <div className="mt-3 space-y-2">
+                          {parsedDescription.sections.map((section, index) => {
+                            const bulletItems = splitBullets(section.body);
+                            return (
+                              <details
+                                key={`${section.title}-${index}`}
+                                className="bg-white/60 border border-green-200 rounded-md px-3 py-2"
+                              >
+                                <summary className="cursor-pointer font-semibold text-green-900">
+                                  {section.title}
+                                </summary>
+                                <div className="mt-2 text-sm text-green-800 leading-relaxed">
+                                  {bulletItems.length > 0 ? (
+                                    <ul className="list-disc pl-5 space-y-1">
+                                      {bulletItems.map((item, itemIndex) => (
+                                        <li key={`${section.title}-item-${itemIndex}`}>{item}</li>
+                                      ))}
+                                    </ul>
+                                  ) : (
+                                    <p className="whitespace-pre-line">{section.body || 'No details available.'}</p>
+                                  )}
+                                </div>
+                              </details>
+                            );
+                          })}
+                        </div>
                       )}
                     </>
                   ) : (
