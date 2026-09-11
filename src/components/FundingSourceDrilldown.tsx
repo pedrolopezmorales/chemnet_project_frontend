@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
+import { buildApiUrl } from '@/services/api';
 import {
   PieChart,
   Pie,
@@ -40,22 +41,32 @@ export default function FundingSourceDrilldown() {
     setLoading(true);
     try {
       const primaryUrl = selectedCategory
-        ? `/api/funding-hierarchy/?category=${selectedCategory.toLowerCase()}&top_n=20`
-        : '/api/funding-stats/';
+        ? buildApiUrl(`/funding-hierarchy/?category=${selectedCategory.toLowerCase()}&top_n=20`)
+        : buildApiUrl('/funding-stats/');
 
       const fallbackUrl = selectedCategory
-        ? `/api/funding-hierarchy/?category=${selectedCategory.toLowerCase()}&top_n=20`
-        : '/api/funding-hierarchy/';
+        ? buildApiUrl(`/funding-hierarchy/?category=${selectedCategory.toLowerCase()}&top_n=20`)
+        : buildApiUrl('/funding-hierarchy/');
 
       let response = await fetch(primaryUrl);
-      let json = await response.json();
+      let json: any = null;
 
-      if (!response.ok && json?.error) {
-        response = await fetch(fallbackUrl);
+      try {
         json = await response.json();
+      } catch {
+        json = null;
       }
 
-      if (json.success) {
+      if (!response.ok && (!json || json?.error)) {
+        response = await fetch(fallbackUrl);
+        try {
+          json = await response.json();
+        } catch {
+          json = null;
+        }
+      }
+
+      if (json?.success) {
         if (json.mode === 'categories') {
           setData(json.categoriesData || json.data || []);
           setTotalStudies(json.overallTotal || json.total || 0);

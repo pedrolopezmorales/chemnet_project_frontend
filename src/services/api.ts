@@ -1,7 +1,12 @@
 import axios from 'axios';
 
-// Base URL for Django API - uses environment variable for production
-const API_BASE_URL = `https://dabrahamsson.pythonanywhere.com/api`;
+// Base URL for Django API - use env override for staging/local deployments
+export const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || 'https://dabrahamsson.pythonanywhere.com/api').replace(/\/$/, '');
+
+export const buildApiUrl = (path: string) => {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${API_BASE_URL}${normalizedPath}`;
+};
 
 // Create axios instance with default config
 const apiClient = axios.create({
