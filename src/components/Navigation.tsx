@@ -16,7 +16,7 @@ export default function Navigation() {
             <Link href="/universities" className="text-gray-600 hover:text-gray-900">Universities</Link>
             <Link href="/researchers" className="text-gray-600 hover:text-gray-900">Researchers</Link>
             <Link href="/funding" className="text-gray-600 hover:text-gray-900">Funding Table</Link>
-            <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 font-semibold text-purple-600">Dashboard</Link>
+            <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 font-semibold text-purple-600">Data Charts</Link>
           </div>
         </div>
       </div>

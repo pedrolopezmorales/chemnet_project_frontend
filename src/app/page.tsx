@@ -55,6 +55,14 @@ export default function Home() {
             <h2 className="text-2xl font-bold mb-2">Funding Table</h2>
             <p className="text-indigo-100">Browse top funding sources and research investments</p>
           </Link>
+
+          <Link
+            href="/dashboard"
+            className="bg-sky-500 hover:bg-sky-600 text-white rounded-lg p-8 shadow-lg hover:shadow-xl transition-all"
+          >
+            <h2 className="text-2xl font-bold mb-2">Data Charts</h2>
+            <p className="text-sky-100">View interactive charts and drill down into funding data</p>
+          </Link>
         </div>
       </div>
 
