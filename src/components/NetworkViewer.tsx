@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { ExternalLink } from 'lucide-react';
 import ConnectionsDetails from './ConnectionsDetails';
-import type { ConnectionsMap } from '@/services/api';
+import { API_BASE_URL, type ConnectionsMap } from '@/services/api';
 
 interface NetworkViewerProps {
   iframeUrl?: string;
@@ -20,7 +20,7 @@ export default function NetworkViewer({ iframeUrl, graphHtml, connections, title
     return null;
   }
 
-  const baseUrl = 'https://dabrahamsson.pythonanywhere.com';
+  const baseUrl = API_BASE_URL.replace(/\/api\/?$/, '');
   const fullIframeUrl = iframeUrl ? `${baseUrl}${iframeUrl}` : '';
   const iframeSrcProps = graphHtml ? { srcDoc: graphHtml } : iframeUrl ? { src: fullIframeUrl } : {};
 

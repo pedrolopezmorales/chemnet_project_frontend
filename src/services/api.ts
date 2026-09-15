@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { debugError } from '@/utils/logger';
 
 // Base URL for Django API - use env override for staging/local deployments
 export const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || 'https://dabrahamsson.pythonanywhere.com/api').replace(/\/$/, '');
@@ -14,7 +15,7 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000000, //  timeout
+  timeout: 15000,
 });
 
 // Types for API responses
@@ -270,10 +271,7 @@ export const researcherApi = {
 export const fundingApi = {
   // Get funding table data
   getFundingTable: async (options?: { category?: 'all' | 'government' | 'university' | 'foundation' | 'company' | 'unknown'; topN?: number }): Promise<FundingTableResponse> => {
-    console.log('getFundingTable called');
-    
     try {
-      console.log('Calling backend API for funding table...');
       const params = new URLSearchParams();
       if (options?.category) {
         params.set('category', options.category);
@@ -283,10 +281,9 @@ export const fundingApi = {
       }
       const suffix = params.toString() ? `?${params.toString()}` : '';
       const response = await apiClient.get(`/funding-table/${suffix}`);
-      console.log('Backend response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('Backend API failed:', error);
+      debugError('Backend API failed:', error);
       return {
         success: false,
         message: 'Failed to load funding data'
@@ -297,9 +294,7 @@ export const fundingApi = {
   // Get company details for modal
   getCompanyDetails: async (company_name: string): Promise<CompanyDetailsResponse> => {
     try {
-      console.log(`Fetching company details for: ${company_name}`);
       const response = await apiClient.get(`/funding-table/?company_name=${encodeURIComponent(company_name)}`);
-      console.log('Company details response:', response.data);
       
       if (response.data.success) {
         return {
@@ -315,7 +310,7 @@ export const fundingApi = {
         error: 'No data found for company'
       };
     } catch (error) {
-      console.error('Company details API error:', error);
+      debugError('Company details API error:', error);
       return {
         success: false,
         error: 'Failed to load company details'
@@ -326,7 +321,7 @@ export const fundingApi = {
 
 // Error handling wrapper
 export const handleApiError = (error: unknown) => {
-  console.error('Full error object:', error);
+  debugError('Full error object:', error);
 
   if (axios.isAxiosError(error)) {
     if (error.response) {

@@ -1,22 +1,11 @@
 import React from 'react';
 import { Network, Circle } from 'lucide-react';
+import { CATEGORY_COLORS, formatCategoryDisplayName } from '@/constants/categories';
 
 interface ConnectionsDetailsProps {
   connections: Record<string, any>;
   title?: string;
 }
-
-const CATEGORY_COLORS: Record<string, string> = {
-  Government: '#DD403A',
-  University: '#7B4B94',
-  Foundation: '#B7E3CC',
-  Company: '#7D82B8',
-  Unknown: '#FFC145',
-};
-
-const CATEGORY_DISPLAY_NAMES: Record<string, string> = {
-  Unknown: 'Not Recognized',
-};
 
 const CONNECTION_DISPLAY_NAMES: Record<string, string> = {
   Inchikey: 'InChIKey',
@@ -41,7 +30,7 @@ function renderCategoryText(text: string): React.ReactNode {
   const fullTag = match[2] || '';
   const category = match[3] || 'Unknown';
   const suffix = match[4] || '';
-  const categoryDisplay = CATEGORY_DISPLAY_NAMES[category] ?? category;
+  const categoryDisplay = formatCategoryDisplayName(category);
 
   return (
     <>

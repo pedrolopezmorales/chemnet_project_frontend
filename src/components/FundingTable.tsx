@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Building2, AlertCircle, X, ExternalLink } from 'lucide-react';
 import { fundingApi, FundingData, CompanyDetailsResponse } from '../services/api';
+import { getCategoryColor } from '@/constants/categories';
+import { debugError } from '@/utils/logger';
 
 interface FundingTableProps {
   className?: string;
@@ -12,6 +14,15 @@ type FundingCategoryFilter = 'all' | 'government' | 'university' | 'foundation' 
 
 const formatClassificationLabel = (classification: string) => {
   return classification.toLowerCase() === 'unknown' ? 'Not Recognized' : classification;
+};
+
+const normalizeCategoryKey = (classification: string) => {
+  const normalized = classification.trim().toLowerCase();
+  if (normalized === 'government') return 'Government';
+  if (normalized === 'university') return 'University';
+  if (normalized === 'foundation') return 'Foundation';
+  if (normalized === 'company') return 'Company';
+  return 'Unknown';
 };
 
 const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
@@ -39,12 +50,9 @@ const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
   const loadFundingData = async (category: FundingCategoryFilter = 'all') => {
     try {
       setLoading(true);
-      console.log('Loading funding data...');
       const response = await fundingApi.getFundingTable({ category, topN: 50 });
-      console.log('Funding API response:', response);
       
       if (response.success && response.funding_data) {
-        console.log('Setting funding data:', response.funding_data);
         setFundingData(response.funding_data);
         if (response.message) {
           setError(response.message); // This will show the fallback data message
@@ -52,12 +60,11 @@ const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
           setError(null);
         }
       } else {
-        console.log('API returned unsuccessful response');
         setError(response.message || 'Failed to load funding data');
         setFundingData([]); // Don't show data if not successful
       }
     } catch (err) {
-      console.error('Error in loadFundingData:', err);
+      debugError('Error in loadFundingData:', err);
       setError('Error loading funding data: ' + (err instanceof Error ? err.message : String(err)));
       setFundingData([]);
     } finally {
@@ -66,21 +73,21 @@ const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
   };
 
   const getClassificationColor = (classification: string) => {
-    switch (classification.toLowerCase()) {
-      case 'government': return 'bg-[#DD403A] text-white hover:bg-[#DD403A]';
-      case 'university': return 'bg-[#7B4B94] text-white hover:bg-[#7B4B94]';
-      case 'foundation': return 'bg-[#B7E3CC] text-black hover:bg-[#B7E3CC]';
-      case 'company': return 'bg-[#7D82B8] text-white hover:bg-[#7D82B8]';
+    switch (getCategoryColor(normalizeCategoryKey(classification))) {
+      case '#DD403A': return 'bg-[#DD403A] text-white hover:bg-[#DD403A]';
+      case '#7B4B94': return 'bg-[#7B4B94] text-white hover:bg-[#7B4B94]';
+      case '#B7E3CC': return 'bg-[#B7E3CC] text-black hover:bg-[#B7E3CC]';
+      case '#7D82B8': return 'bg-[#7D82B8] text-white hover:bg-[#7D82B8]';
       default: return 'bg-[#FFC145] text-black hover:bg-[#FFC145]';
     }
   };
 
   const getClassificationBadgeColor = (classification: string) => {
-    switch (classification.toLowerCase()) {
-      case 'government': return 'bg-[#DD403A] text-white';
-      case 'university': return 'bg-[#7B4B94] text-white';
-      case 'foundation': return 'bg-[#B7E3CC] text-black';
-      case 'company': return 'bg-[#7D82B8] text-white';
+    switch (getCategoryColor(normalizeCategoryKey(classification))) {
+      case '#DD403A': return 'bg-[#DD403A] text-white';
+      case '#7B4B94': return 'bg-[#7B4B94] text-white';
+      case '#B7E3CC': return 'bg-[#B7E3CC] text-black';
+      case '#7D82B8': return 'bg-[#7D82B8] text-white';
       default: return 'bg-[#FFC145] text-black';
     }
   };
@@ -93,7 +100,7 @@ const FundingTable: React.FC<FundingTableProps> = ({ className = '' }) => {
       const details = await fundingApi.getCompanyDetails(company.company);
       setCompanyDetails(details);
     } catch (err) {
-      console.error('Error loading company details:', err);
+      debugError('Error loading company details:', err);
       setCompanyDetails({ success: false, error: 'Failed to load company details' });
     } finally {
       setLoadingDetails(false);

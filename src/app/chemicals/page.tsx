@@ -6,6 +6,9 @@ import SearchForm from '@/components/SearchForm';
 import NetworkViewer from '@/components/NetworkViewer';
 import { chemicalApi, handleApiError, ChemicalSearchResponse } from '@/services/api';
 import SingletonFilterModal from '@/components/SingletonFilterModal';
+import { extractCountFromString } from '@/utils/extractCount';
+import { useConnectionThreshold } from '@/hooks/useConnectionThreshold';
+import { useInitialExamples } from '@/hooks/useInitialExamples';
 
 const DESCRIPTION_SECTION_TITLES = [
   'Industry uses:',
@@ -74,45 +77,23 @@ export default function ChemicalsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isGraphLoading, setIsGraphLoading] = useState(false);
   const [error, setError] = useState<string>('');
-  const [examples, setExamples] = useState<string[]>([]);
+  const examples = useInitialExamples(async () => {
+    const data = await chemicalApi.getChemicalData();
+    return data.example_chemicals ? data.example_chemicals.map((chem) => chem.name) : [];
+  });
   const [inchikey, setInchikey] = useState('');
   const [structureImageSrc, setStructureImageSrc] = useState<string | null>(null);
   const [hideStructureImage, setHideStructureImage] = useState(false);
   const [usedInchikeyFallback, setUsedInchikeyFallback] = useState(false);
   const [isMainDescriptionExpanded, setIsMainDescriptionExpanded] = useState(false);
   const activeSearchRef = useRef(0);
-  const filterResolverRef = useRef<((v: 0 | 1 | 2 | 3) => void) | null>(null);
-  const [filterPromptVisible, setFilterPromptVisible] = useState(false);
-  const [filterInfo, setFilterInfo] = useState({ count: 0, eligibleCount: 0 });
-
-  const askConnectionThreshold = (count: number, eligibleCount: number): Promise<0 | 1 | 2 | 3> => {
-    setFilterInfo({ count, eligibleCount });
-    setFilterPromptVisible(true);
-    return new Promise<0 | 1 | 2 | 3>((resolve) => { filterResolverRef.current = resolve; });
-  };
-  const handleFilterChoose = (threshold: 1 | 2 | 3) => { setFilterPromptVisible(false); filterResolverRef.current?.(threshold); };
-  const handleFilterCancel  = () => { setFilterPromptVisible(false); filterResolverRef.current?.(0); };
-
-  const extractCount = (item: string): number | null => {
-    const match = item.match(/\((\d+)\)\s*$/);
-    return match ? parseInt(match[1], 10) : null;
-  };
-
-  // Load initial data (examples and chemical names)
-  useEffect(() => {
-    const loadInitialData = async () => {
-      try {
-        const data = await chemicalApi.getChemicalData();
-        if (data.example_chemicals) {
-          setExamples(data.example_chemicals.map(chem => chem.name));
-        }
-      } catch (err) {
-        console.error('Failed to load initial data:', err);
-      }
-    };
-
-    loadInitialData();
-  }, []);
+  const {
+    filterPromptVisible,
+    filterInfo,
+    askConnectionThreshold,
+    handleFilterChoose,
+    handleFilterCancel,
+  } = useConnectionThreshold();
 
   useEffect(() => {
     if (!searchResults?.success || !searchResults.chemical) {
@@ -198,7 +179,7 @@ export default function ChemicalsPage() {
         ? connectionsResult.connections?.['Funding Sources'] as string[]
         : [];
       const eligibleCount = fundingSources.filter((item) => {
-        const count = extractCount(item);
+        const count = extractCountFromString(item);
         return count !== null && count <= 3;
       }).length;
 

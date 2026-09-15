@@ -6,25 +6,27 @@ import NetworkViewer from '@/components/NetworkViewer';
 import { universityApi, handleApiError, UniversitySearchRequest, UniversitySearchResponse } from '@/services/api';
 import { Search, GraduationCap, AlertCircle } from 'lucide-react';
 import SingletonFilterModal from '@/components/SingletonFilterModal';
+import { extractCountFromString } from '@/utils/extractCount';
+import { useConnectionThreshold } from '@/hooks/useConnectionThreshold';
+import { useInitialExamples } from '@/hooks/useInitialExamples';
 
 export default function UniversitiesPage() {
   const [searchResults, setSearchResults] = useState<UniversitySearchResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isGraphLoading, setIsGraphLoading] = useState(false);
   const [error, setError] = useState<string>('');
-  const [examples, setExamples] = useState<string[]>([]);
+  const examples = useInitialExamples(async () => {
+    const data = await universityApi.getUniversityData();
+    return data.example_universities || [];
+  });
   const activeSearchRef = useRef(0);
-  const filterResolverRef = useRef<((v: 0 | 1 | 2 | 3) => void) | null>(null);
-  const [filterPromptVisible, setFilterPromptVisible] = useState(false);
-  const [filterInfo, setFilterInfo] = useState({ count: 0, eligibleCount: 0 });
-
-  const askConnectionThreshold = (count: number, eligibleCount: number): Promise<0 | 1 | 2 | 3> => {
-    setFilterInfo({ count, eligibleCount });
-    setFilterPromptVisible(true);
-    return new Promise<0 | 1 | 2 | 3>((resolve) => { filterResolverRef.current = resolve; });
-  };
-  const handleFilterChoose = (threshold: 1 | 2 | 3) => { setFilterPromptVisible(false); filterResolverRef.current?.(threshold); };
-  const handleFilterCancel  = () => { setFilterPromptVisible(false); filterResolverRef.current?.(0); };
+  const {
+    filterPromptVisible,
+    filterInfo,
+    askConnectionThreshold,
+    handleFilterChoose,
+    handleFilterCancel,
+  } = useConnectionThreshold();
   
   // Form state
   const [university, setUniversity] = useState('');
@@ -33,27 +35,6 @@ export default function UniversitiesPage() {
 
   const categoryOptions = ['Chemicals', 'Funding Sources'];
   const chemicalGroupOptions = ['All', 'Organic'];
-
-  const extractCount = (item: string): number | null => {
-    const match = item.match(/\((\d+)\)\s*$/);
-    return match ? parseInt(match[1], 10) : null;
-  };
-
-  // Load initial data
-  useEffect(() => {
-    const loadInitialData = async () => {
-      try {
-        const data = await universityApi.getUniversityData();
-        if (data.example_universities) {
-          setExamples(data.example_universities);
-        }
-      } catch (err) {
-        console.error('Failed to load initial data:', err);
-      }
-    };
-
-    loadInitialData();
-  }, []);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,7 +73,7 @@ export default function UniversitiesPage() {
         ? connectionsResult.connections?.[graphKey] as string[]
         : [];
       const eligibleCount = candidates.filter((item) => {
-        const count = extractCount(item);
+        const count = extractCountFromString(item);
         return count !== null && count <= 3;
       }).length;
 

@@ -1,38 +1,26 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Navigation from '@/components/Navigation';
 import NetworkViewer from '@/components/NetworkViewer';
 import { researcherApi, handleApiError, ResearcherSearchResponse } from '@/services/api';
 import { Search, User, AlertCircle, Users, UserCheck } from 'lucide-react';
+import { useInitialExamples } from '@/hooks/useInitialExamples';
 
 export default function ResearchersPage() {
   const [searchResults, setSearchResults] = useState<ResearcherSearchResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
-  const [examples, setExamples] = useState<string[]>([]);
+  const examples = useInitialExamples(async () => {
+    const data = await researcherApi.getResearcherData();
+    return data.example_researchers || [];
+  });
   
   // Form state
   const [researcher, setResearcher] = useState('');
   const [selectedIndex, setSelectedIndex] = useState<number | undefined>(undefined);
   const [combine, setCombine] = useState(false);
   const [category, setCategory] = useState<'Funding Sources' | 'Collaborators'>('Funding Sources');
-
-  // Load initial data
-  useEffect(() => {
-    const loadInitialData = async () => {
-      try {
-        const data = await researcherApi.getResearcherData();
-        if (data.example_researchers) {
-          setExamples(data.example_researchers);
-        }
-      } catch (err) {
-        console.error('Failed to load initial data:', err);
-      }
-    };
-
-    loadInitialData();
-  }, []);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();

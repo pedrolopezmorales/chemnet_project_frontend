@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import { buildApiUrl } from '@/services/api';
+import { debugError } from '@/utils/logger';
 import {
   PieChart,
   Pie,
@@ -44,9 +45,7 @@ export default function FundingSourceDrilldown() {
         ? buildApiUrl(`/funding-hierarchy/?category=${selectedCategory.toLowerCase()}&top_n=20`)
         : buildApiUrl('/funding-stats/');
 
-      const fallbackUrl = selectedCategory
-        ? buildApiUrl(`/funding-hierarchy/?category=${selectedCategory.toLowerCase()}&top_n=20`)
-        : buildApiUrl('/funding-hierarchy/');
+      const fallbackUrl = !selectedCategory ? buildApiUrl('/funding-hierarchy/') : null;
 
       let response = await fetch(primaryUrl);
       let json: any = null;
@@ -57,7 +56,7 @@ export default function FundingSourceDrilldown() {
         json = null;
       }
 
-      if (!response.ok && (!json || json?.error)) {
+      if (!response.ok && (!json || json?.error) && fallbackUrl) {
         response = await fetch(fallbackUrl);
         try {
           json = await response.json();
@@ -80,14 +79,14 @@ export default function FundingSourceDrilldown() {
         }
       }
     } catch (error) {
-      console.error('Error fetching funding data:', error);
+      debugError('Error fetching funding data:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSliceClick = (entry: FundingData) => {
-    if (entry.name && !selectedCategory) {
+  const handleSliceClick = (entry?: FundingData) => {
+    if (entry?.name && !selectedCategory) {
       setSelectedCategory(entry.name);
     }
   };
@@ -129,6 +128,13 @@ export default function FundingSourceDrilldown() {
                 Total Studies: <span className="font-bold text-lg text-gray-900">{totalStudies}</span>
               </>
             )}
+          </p>
+        </div>
+
+        <div className="mb-6 rounded-2xl border border-sky-200 bg-sky-50 px-5 py-4 shadow-sm">
+          <p className="text-sm font-semibold uppercase tracking-wide text-sky-700">Chart Summary</p>
+          <p className="mt-2 text-base text-sky-950">
+            Charts show data of studies that have the funding source classification funding them. Click a chart segment or table row to drill down into a more specific category view.
           </p>
         </div>
 
@@ -184,13 +190,17 @@ export default function FundingSourceDrilldown() {
                   outerRadius={140}
                   fill="#8884d8"
                   dataKey="value"
-                  onClick={(entry) => handleSliceClick(data[entry.index])}
                   style={{ cursor: selectedCategory ? 'default' : 'pointer' }}
                   animationBegin={0}
                   animationDuration={800}
                 >
                   {data.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={entry.color}
+                      onClick={() => handleSliceClick(entry)}
+                      style={{ cursor: selectedCategory ? 'default' : 'pointer' }}
+                    />
                   ))}
                 </Pie>
                 <Tooltip content={<CustomTooltip />} />
@@ -203,9 +213,18 @@ export default function FundingSourceDrilldown() {
                 <XAxis dataKey="displayName" angle={-35} textAnchor="end" height={80} />
                 <YAxis />
                 <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                <Bar
+                  dataKey="value"
+                  radius={[8, 8, 0, 0]}
+                  style={{ cursor: selectedCategory ? 'default' : 'pointer' }}
+                >
                   {data.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={entry.color}
+                      onClick={() => handleSliceClick(entry)}
+                      style={{ cursor: selectedCategory ? 'default' : 'pointer' }}
+                    />
                   ))}
                 </Bar>
               </BarChart>

@@ -7,6 +7,9 @@ import NetworkViewer from '@/components/NetworkViewer';
 import { companyApi, handleApiError, CompanySearchResponse, CompanySearchRequest } from '@/services/api';
 import { Search, Building2, AlertCircle } from 'lucide-react';
 import SingletonFilterModal from '@/components/SingletonFilterModal';
+import { extractCountFromString } from '@/utils/extractCount';
+import { useConnectionThreshold } from '@/hooks/useConnectionThreshold';
+import { useInitialExamples } from '@/hooks/useInitialExamples';
 
 function CompaniesPageContent() {
   const searchParams = useSearchParams();
@@ -14,19 +17,18 @@ function CompaniesPageContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [isGraphLoading, setIsGraphLoading] = useState(false);
   const [error, setError] = useState<string>('');
-  const [examples, setExamples] = useState<string[]>([]);
+  const examples = useInitialExamples(async () => {
+    const data = await companyApi.getCompanyData();
+    return data.example_companies || [];
+  });
   const activeSearchRef = useRef(0);
-  const filterResolverRef = useRef<((v: 0 | 1 | 2 | 3) => void) | null>(null);
-  const [filterPromptVisible, setFilterPromptVisible] = useState(false);
-  const [filterInfo, setFilterInfo] = useState({ count: 0, eligibleCount: 0 });
-
-  const askConnectionThreshold = (count: number, eligibleCount: number): Promise<0 | 1 | 2 | 3> => {
-    setFilterInfo({ count, eligibleCount });
-    setFilterPromptVisible(true);
-    return new Promise<0 | 1 | 2 | 3>((resolve) => { filterResolverRef.current = resolve; });
-  };
-  const handleFilterChoose = (threshold: 1 | 2 | 3) => { setFilterPromptVisible(false); filterResolverRef.current?.(threshold); };
-  const handleFilterCancel  = () => { setFilterPromptVisible(false); filterResolverRef.current?.(0); };
+  const {
+    filterPromptVisible,
+    filterInfo,
+    askConnectionThreshold,
+    handleFilterChoose,
+    handleFilterCancel,
+  } = useConnectionThreshold();
   
   const [company, setCompany] = useState('');
   const [category, setCategory] = useState('Affiliations');
@@ -35,11 +37,6 @@ function CompaniesPageContent() {
 
   const categoryOptions = ['Affiliations', 'Chemicals', 'Researchers', 'Universities'];
   const chemicalGroupOptions = ['All', 'Organic'];
-
-  const extractCount = (item: string): number | null => {
-    const match = item.match(/\((\d+)\)\s*$/);
-    return match ? parseInt(match[1], 10) : null;
-  };
 
   const getGraphCandidates = (connections: unknown): string[] => {
     if (!connections || typeof connections !== 'object') {
@@ -56,24 +53,11 @@ function CompaniesPageContent() {
   };
 
   useEffect(() => {
-    const loadInitialData = async () => {
-      try {
-        const data = await companyApi.getCompanyData();
-        if (data.example_companies) {
-          setExamples(data.example_companies);
-        }
-      } catch (err) {
-        console.error('Failed to load initial data:', err);
-      }
-    };
-
     // Check for company parameter from URL and auto-fill search bar
     const companyParam = searchParams.get('company');
     if (companyParam) {
       setCompany(decodeURIComponent(companyParam));
     }
-
-    loadInitialData();
   }, [searchParams]);
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -111,7 +95,7 @@ function CompaniesPageContent() {
 
       const candidates = getGraphCandidates(connectionsResult.connections);
       const eligibleCount = candidates.filter((item) => {
-        const count = extractCount(item);
+        const count = extractCountFromString(item);
         return count !== null && count <= 3;
       }).length;
 
