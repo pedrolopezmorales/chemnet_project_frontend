@@ -25,6 +25,13 @@ interface FundingData {
   category?: string;
 }
 
+interface StudyItem {
+  title: string;
+  doi?: string | null;
+  url?: string | null;
+  year?: number | null;
+}
+
 export default function FundingSourceDrilldown() {
   const [data, setData] = useState<FundingData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,6 +40,11 @@ export default function FundingSourceDrilldown() {
   const [totalStudies, setTotalStudies] = useState(0);
   const [categoryTotal, setCategoryTotal] = useState(0);
   const [breadcrumb, setBreadcrumb] = useState<string | null>(null);
+  const [selectedSource, setSelectedSource] = useState<string | null>(null);
+  const [sourceStudies, setSourceStudies] = useState<StudyItem[]>([]);
+  const [sourceStudyCount, setSourceStudyCount] = useState(0);
+  const [loadingSourceStudies, setLoadingSourceStudies] = useState(false);
+  const [sourceStudiesError, setSourceStudiesError] = useState<string>('');
 
   useEffect(() => {
     fetchData();
@@ -71,11 +83,19 @@ export default function FundingSourceDrilldown() {
           setTotalStudies(json.overallTotal || json.total || 0);
           setCategoryTotal(0);
           setBreadcrumb(null);
+          setSelectedSource(null);
+          setSourceStudies([]);
+          setSourceStudyCount(0);
+          setSourceStudiesError('');
         } else if (json.mode === 'drilldown') {
           setData(json.drilldownData || []);
           setTotalStudies(json.overallTotal || 0);
           setCategoryTotal(json.categoryTotal || 0);
           setBreadcrumb(json.categoryDisplay || null);
+          setSelectedSource(null);
+          setSourceStudies([]);
+          setSourceStudyCount(0);
+          setSourceStudiesError('');
         }
       }
     } catch (error) {
@@ -85,14 +105,53 @@ export default function FundingSourceDrilldown() {
     }
   };
 
-  const handleSliceClick = (entry?: FundingData) => {
-    if (entry?.name && !selectedCategory) {
-      setSelectedCategory(entry.name);
+  const fetchSourceStudies = async (sourceName: string) => {
+    setLoadingSourceStudies(true);
+    setSourceStudiesError('');
+    try {
+      const url = buildApiUrl(`/funding-source-studies/?source=${encodeURIComponent(sourceName)}&limit=200`);
+      const response = await fetch(url);
+      const json = await response.json();
+
+      if (!response.ok || !json?.success) {
+        setSourceStudies([]);
+        setSourceStudyCount(0);
+        setSourceStudiesError(json?.error || 'Failed to load study names for this funding source.');
+        return;
+      }
+
+      setSelectedSource(sourceName);
+      setSourceStudies(Array.isArray(json.studies) ? json.studies : []);
+      setSourceStudyCount(Number(json.studyCount) || 0);
+    } catch (error) {
+      debugError('Error loading studies for funding source:', error);
+      setSourceStudies([]);
+      setSourceStudyCount(0);
+      setSourceStudiesError('Failed to load study names for this funding source.');
+    } finally {
+      setLoadingSourceStudies(false);
     }
+  };
+
+  const handleSliceClick = (entry?: FundingData) => {
+    if (!entry?.name) {
+      return;
+    }
+
+    if (!selectedCategory) {
+      setSelectedCategory(entry.name);
+      return;
+    }
+
+    fetchSourceStudies(entry.name);
   };
 
   const handleBackClick = () => {
     setSelectedCategory(null);
+    setSelectedSource(null);
+    setSourceStudies([]);
+    setSourceStudyCount(0);
+    setSourceStudiesError('');
   };
 
   const CustomTooltip = ({ active, payload }: any) => {
@@ -190,7 +249,7 @@ export default function FundingSourceDrilldown() {
                   outerRadius={140}
                   fill="#8884d8"
                   dataKey="value"
-                  style={{ cursor: selectedCategory ? 'default' : 'pointer' }}
+                  style={{ cursor: 'pointer' }}
                   animationBegin={0}
                   animationDuration={800}
                 >
@@ -199,7 +258,7 @@ export default function FundingSourceDrilldown() {
                       key={`cell-${index}`}
                       fill={entry.color}
                       onClick={() => handleSliceClick(entry)}
-                      style={{ cursor: selectedCategory ? 'default' : 'pointer' }}
+                      style={{ cursor: 'pointer' }}
                     />
                   ))}
                 </Pie>
@@ -216,14 +275,14 @@ export default function FundingSourceDrilldown() {
                 <Bar
                   dataKey="value"
                   radius={[8, 8, 0, 0]}
-                  style={{ cursor: selectedCategory ? 'default' : 'pointer' }}
+                  style={{ cursor: 'pointer' }}
                 >
                   {data.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={entry.color}
                       onClick={() => handleSliceClick(entry)}
-                      style={{ cursor: selectedCategory ? 'default' : 'pointer' }}
+                      style={{ cursor: 'pointer' }}
                     />
                   ))}
                 </Bar>
@@ -250,7 +309,7 @@ export default function FundingSourceDrilldown() {
                     key={idx}
                     className="border-b border-gray-200 hover:bg-gray-50 transition"
                     onClick={() => handleSliceClick(row)}
-                    style={{ cursor: selectedCategory ? 'default' : 'pointer' }}
+                    style={{ cursor: 'pointer' }}
                   >
                     <td className="px-6 py-3">
                       <div className="flex items-center gap-3">
@@ -266,6 +325,55 @@ export default function FundingSourceDrilldown() {
             </tbody>
           </table>
         </div>
+
+        {selectedCategory && (
+          <div className="mt-8 bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              {selectedSource ? `Studies Funded By ${selectedSource}` : 'Select A Funding Source'}
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              {selectedSource
+                ? `Showing ${sourceStudies.length} of ${sourceStudyCount.toLocaleString()} matched studies.`
+                : 'Click a funding source bar, pie segment, or table row above to view study titles.'}
+            </p>
+
+            {loadingSourceStudies ? (
+              <div className="text-gray-500">Loading studies...</div>
+            ) : sourceStudiesError ? (
+              <div className="text-red-600">{sourceStudiesError}</div>
+            ) : selectedSource && sourceStudies.length === 0 ? (
+              <div className="text-gray-500">No study names found for this funding source.</div>
+            ) : selectedSource ? (
+              <div className="max-h-96 overflow-y-auto border border-gray-200 rounded-md">
+                <ul className="divide-y divide-gray-200">
+                  {sourceStudies.map((study, index) => {
+                    const key = `${study.doi || study.title}-${index}`;
+                    const href = study.url || (study.doi ? `https://doi.org/${study.doi}` : null);
+                    return (
+                      <li key={key} className="p-4">
+                        <p className="font-medium text-gray-900">{study.title}</p>
+                        <div className="mt-1 text-sm text-gray-600 flex flex-wrap gap-4">
+                          {study.year ? <span>Year: {study.year}</span> : null}
+                          {study.doi ? <span>DOI: {study.doi}</span> : null}
+                          {href ? (
+                            <a
+                              href={href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 font-medium"
+                            >
+                              Open Study
+                            </a>
+                          ) : null}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ) : null}
+          </div>
+        )}
 
         {!selectedCategory && (
           <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
