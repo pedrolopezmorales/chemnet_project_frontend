@@ -32,6 +32,26 @@ interface StudyItem {
   year?: number | null;
 }
 
+const formatStudyTitle = (title: string) => {
+  if (!title) return 'Untitled Study';
+
+  const decoded = (() => {
+    if (typeof document === 'undefined') {
+      return title;
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = title;
+    return textarea.value;
+  })();
+
+  return decoded
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim() || 'Untitled Study';
+};
+
 export default function FundingSourceDrilldown() {
   const [data, setData] = useState<FundingData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,6 +65,7 @@ export default function FundingSourceDrilldown() {
   const [sourceStudyCount, setSourceStudyCount] = useState(0);
   const [loadingSourceStudies, setLoadingSourceStudies] = useState(false);
   const [sourceStudiesError, setSourceStudiesError] = useState<string>('');
+  const [hoveredAxisLabel, setHoveredAxisLabel] = useState<{ text: string; x: number; y: number } | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -152,6 +173,37 @@ export default function FundingSourceDrilldown() {
     setSourceStudies([]);
     setSourceStudyCount(0);
     setSourceStudiesError('');
+    setHoveredAxisLabel(null);
+  };
+
+  const formatAxisLabel = (value: string) => {
+    if (!value) return value;
+    return value.length > 18 ? `${value.slice(0, 18)}…` : value;
+  };
+
+  const CustomXAxisTick = ({ x, y, payload }: any) => {
+    const fullLabel = String(payload?.value ?? '');
+    const shortLabel = formatAxisLabel(fullLabel);
+
+    return (
+      <g transform={`translate(${x},${y})`}>
+        <text
+          x={0}
+          y={0}
+          dy={10}
+          textAnchor="end"
+          fill="#374151"
+          fontSize={11}
+          transform="rotate(-45)"
+          style={{ cursor: 'pointer' }}
+          onMouseEnter={(event) => setHoveredAxisLabel({ text: fullLabel, x: event.clientX, y: event.clientY })}
+          onMouseMove={(event) => setHoveredAxisLabel({ text: fullLabel, x: event.clientX, y: event.clientY })}
+          onMouseLeave={() => setHoveredAxisLabel(null)}
+        >
+          {shortLabel}
+        </text>
+      </g>
+    );
   };
 
   const CustomTooltip = ({ active, payload }: any) => {
@@ -232,7 +284,16 @@ export default function FundingSourceDrilldown() {
           </button>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8 relative">
+          {hoveredAxisLabel && (
+            <div
+              className="pointer-events-none fixed z-50 max-w-xs rounded-md border border-gray-300 bg-white px-3 py-2 text-xs text-gray-900 shadow-lg"
+              style={{ left: hoveredAxisLabel.x + 12, top: hoveredAxisLabel.y + 12 }}
+            >
+              {hoveredAxisLabel.text}
+            </div>
+          )}
+
           {loading ? (
             <div className="text-center py-12 text-gray-500">Loading funding breakdown...</div>
           ) : data.length === 0 ? (
@@ -267,15 +328,21 @@ export default function FundingSourceDrilldown() {
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <ResponsiveContainer width="100%" height={500}>
-              <BarChart data={data}>
-                <XAxis dataKey="displayName" angle={-35} textAnchor="end" height={80} />
-                <YAxis />
+            <ResponsiveContainer width="100%" height={620}>
+              <BarChart data={data} margin={{ top: 20, right: 20, bottom: 150, left: 20 }}>
+                <XAxis
+                  dataKey="displayName"
+                  height={140}
+                  interval={0}
+                  tick={<CustomXAxisTick />}
+                />
+                <YAxis tick={{ fontSize: 11, fill: '#374151' }} />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar
                   dataKey="value"
-                  radius={[8, 8, 0, 0]}
+                  radius={[6, 6, 0, 0]}
                   style={{ cursor: 'pointer' }}
+                  maxBarSize={30}
                 >
                   {data.map((entry, index) => (
                     <Cell
@@ -347,12 +414,13 @@ export default function FundingSourceDrilldown() {
               <div className="max-h-96 overflow-y-auto border border-gray-200 rounded-md">
                 <ul className="divide-y divide-gray-200">
                   {sourceStudies.map((study, index) => {
-                    const key = `${study.doi || study.title}-${index}`;
+                    const cleanTitle = formatStudyTitle(study.title || 'Untitled Study');
+                    const key = `${study.doi || cleanTitle}-${index}`;
                     const href = study.url || (study.doi ? `https://doi.org/${study.doi}` : null);
                     return (
                       <li key={key} className="p-4">
-                        <p className="font-medium text-gray-900">{study.title}</p>
-                        <div className="mt-1 text-sm text-gray-600 flex flex-wrap gap-4">
+                        <p className="font-medium text-gray-900 leading-relaxed break-words">{cleanTitle}</p>
+                        <div className="mt-2 text-sm text-gray-600 flex flex-wrap gap-4">
                           {study.year ? <span>Year: {study.year}</span> : null}
                           {study.doi ? <span>DOI: {study.doi}</span> : null}
                           {href ? (
